@@ -1,3 +1,4 @@
+import { ListRange } from "@angular/cdk/collections";
 import { BehaviorSubject, debounceTime, distinctUntilChanged } from "rxjs";
 import { GetFilesRequest, GetFilesResponse, InitFilesRequest, InitFilesResponse } from "../../electron/IPC/DatabaseChannel";
 import { IpcService } from "../../shared/IpcService";
@@ -12,13 +13,7 @@ export interface Thumbnail {
   dateModified: Date;
 }
 
-export interface ListRange {
-  start: number;
-
-  end: number;
-}
-
-export class VirtualTimelineDataSource<T> {
+export class VirtualCanvasDataSource {
   length = 0;
 
   private _dataCache = new Array<Thumbnail>(this.length);
@@ -33,8 +28,7 @@ export class VirtualTimelineDataSource<T> {
 
   private readonly _ipc = new IpcService();
 
-  constructor() {
-  }
+  constructor() {}
 
   async init() {
     const result = await new IpcService().send<InitFilesResponse>(new InitFilesRequest());
@@ -44,6 +38,10 @@ export class VirtualTimelineDataSource<T> {
 
     this.data$.next(this._dataCache);
 
+    if (this.length > 0) {
+      await this._loadPage(0);
+    }
+
     this._loadRange$.pipe(
       debounceTime(10),
       distinctUntilChanged((a, b) => a.start === b.start && a.end == b.end)
@@ -52,10 +50,6 @@ export class VirtualTimelineDataSource<T> {
         await this._loadPage(n);
       }
     });
-
-    if (this.length > 0) {
-      await this._loadPage(0);
-    }
   }
 
   private _getPageForIndex(index: number): number {
@@ -73,6 +67,8 @@ export class VirtualTimelineDataSource<T> {
     if (this._loadedPages.has(n)) {
       return;
     }
+
+    console.warn("_loadPage", n);
 
     this._loadedPages.add(n);
 

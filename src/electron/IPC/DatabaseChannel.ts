@@ -3,7 +3,7 @@ import { IpcMainEvent } from 'electron';
 import { IpcRequest } from "../../shared/IpcRequest";
 import { Prisma, PrismaClient, File } from '@prisma/client'
 import { Stopwatch } from "../../shared/stopwatch";
-import { Thumbnail } from "../../app/virtual-timeline-canvas/virtual-timeline.data-source";
+import { Thumbnail } from "../../app/virtual-canvas/virtual-canvas.data-source";
 
 export class DatabaseChannel implements IpcChannelInterface {
   readonly db = new PrismaClient();

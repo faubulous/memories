@@ -3,12 +3,12 @@ import { BrowserModule } from '@angular/platform-browser';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { ScrollingModule } from '@angular/cdk/scrolling';
 import { AppComponent } from './app.component';
-import { VirtualTimelineCanvasComponent } from './virtual-timeline-canvas/virtual-timeline-canvas.component';
+import { VirtualCanvasComponent } from './virtual-canvas/virtual-canvas.component';
 
 @NgModule({
   declarations: [
     AppComponent,
-    VirtualTimelineCanvasComponent
+    VirtualCanvasComponent
   ],
   imports: [
     BrowserModule,
