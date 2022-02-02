@@ -37,13 +37,13 @@ export class GridLayout extends VirtualCanvasLayouterBase {
     private getVisibleColumnCount() {
         const w = this.getTotalTileWidth();
 
-        return this.ctx && w > 0 ? Math.floor(this.ctx.canvas.width / w) : 0;
+        return w > 0 ? Math.floor(this.ctx.canvas.width / w) : 0;
     }
 
     private getVisibleRowCount() {
         const h = this.getTotalTileHeight();
 
-        return this.ctx && h > 0 ? Math.ceil(this.ctx.canvas.height / h) : 0;
+        return h > 0 ? Math.ceil(this.ctx.canvas.height / h) : 0;
     }
 
     private getVisibleRange(): ListRange {
@@ -64,15 +64,13 @@ export class GridLayout extends VirtualCanvasLayouterBase {
     }
 
     private getX0() {
-        if (this.ctx && this.padding.left == 'auto') {
+        if (this.padding.left === 'auto') {
             const visibleColumns = this.getVisibleColumnCount();
             const totalTileWidth = this.getTotalTileWidth();
 
             return (this.ctx.canvas.width - visibleColumns * totalTileWidth) / 2;
-        } else if (typeof (this.padding.left) === 'number') {
-            return this.padding.left;
         } else {
-            return 0;
+            return this.padding.left;
         }
     }
 
@@ -82,19 +80,11 @@ export class GridLayout extends VirtualCanvasLayouterBase {
         return this.padding.top - (this.scrollOffset % totalTileHeight);
     }
 
-    setScrollOffset(scrollOffset: number) {
-        this.scrollOffset = scrollOffset;
-    }
-
     getScrollHeight(): number {
-        return this.ctx ? this.getTotalRowCount() * this.getTotalTileHeight() : 0;
+        return this.getTotalRowCount() * this.getTotalTileHeight();
     }
 
     draw(): void {
-        if (!this.ctx || !this.dataSource) {
-            return;
-        }
-
         const canvasWidth = this.ctx.canvas.width;
         const canvasHeight = this.ctx.canvas.height;
 
@@ -113,11 +103,10 @@ export class GridLayout extends VirtualCanvasLayouterBase {
 
         this.dataSource.loadRange(range);
 
-        for (let n = range.start; n < range.end; n++) {
-            if (n > this.dataSource.length) {
-                break;
-            }
+        const start = range.start;
+        const end = Math.min(range.end, this.dataSource.length);
 
+        for (let n = start; n < end; n++) {
             const item = this.dataSource.data$.value[n];
 
             if (item?.image) {

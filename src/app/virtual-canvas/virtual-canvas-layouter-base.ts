@@ -9,17 +9,17 @@ export abstract class VirtualCanvasLayouterBase implements VirtualCanvasLayouter
         dataSource.data$.subscribe(this.render.bind(this));
     }
 
+    abstract getScrollHeight(): number;
+
     setScrollOffset(scrollOffset: number) {
         this.scrollOffset = scrollOffset;
     }
-
-    abstract getScrollHeight(): number;
 
     render(): void {
         window.requestAnimationFrame(this.draw.bind(this));
     }
 
-    abstract draw(): void;
+    protected abstract draw(): void;
 
     protected drawImage(x: number, y: number, width: number, height: number, image: HTMLImageElement): void {
         if (this.ctx) {
