@@ -1,175 +1,173 @@
-// import { VirtualTimelineLayout } from "../virtual-canvas-layouter";
-// import { ListRange, VirtualCanvasDataSource } from "../virtual-canvas.data-source";
+import { ListRange } from "@angular/cdk/collections";
+import { Point, Rectangle } from "@mathigon/euclid";
+import { Stopwatch } from "src/shared/stopwatch";
+import { VirtualCanvasLayouterBase } from "../virtual-canvas-layouter-base";
+import { VirtualCanvasDataSource } from "../virtual-canvas.data-source";
 
-// export class TimelineLayout implements VirtualTimelineLayout {
-//     private padding:
-//         {
-//             top: number,
-//             left: number | 'auto',
-//             right: number | 'auto',
-//             bottom: number
-//         } = {
-//             top: 40,
-//             left: 'auto',
-//             right: 'auto',
-//             bottom: 40
-//         };
+class LayoutRegion extends Rectangle {
+    range: ListRange = { start: 0, end: 0 };
 
-//     private tileSpacing = 8;
+    constructor(p: Point, width?: number, height?: number) {
+        super(p, width, height);
+    }
+}
 
-//     private tileWidth = 400;
+export class TimelineLayout extends VirtualCanvasLayouterBase {
+    private padding:
+        {
+            top: number,
+            left: number | 'auto',
+            right: number | 'auto',
+            bottom: number
+        } = {
+            top: 40 * window.devicePixelRatio,
+            left: 'auto',
+            right: 'auto',
+            bottom: 40 * window.devicePixelRatio
+        };
 
-//     private tileHeight = 400;
+    private headerHeight = 40 * window.devicePixelRatio;
 
-//     private scrollOffset: number = 0;
+    private spacing = 4 * window.devicePixelRatio;
 
-//     constructor(private ctx: CanvasRenderingContext2D, private dataSource: VirtualCanvasDataSource) { }
+    private tileWidth = 200 * window.devicePixelRatio;
 
-//     private getTotalTileWidth() {
-//         return this.tileWidth + this.tileSpacing;
-//     }
+    private tileHeight = 200 * window.devicePixelRatio;
 
-//     private getTotalTileHeight() {
-//         return this.tileHeight + this.tileSpacing;
-//     }
+    private regions: Array<LayoutRegion> = [];
 
-//     private getVisibleColumnCount() {
-//         const w = this.getTotalTileWidth();
+    private dateFormatter = new Intl.DateTimeFormat(Intl.DateTimeFormat().resolvedOptions().locale);
 
-//         return this.ctx && w > 0 ? Math.floor(this.ctx.canvas.width / w) : 0;
-//     }
+    constructor(ctx: CanvasRenderingContext2D, dataSource: VirtualCanvasDataSource) {
+        super(ctx, dataSource);
+    }
 
-//     private getVisibleRowCount() {
-//         const h = this.getTotalTileHeight();
+    private getVisibleColumnCount() {
+        const w = this.tileWidth + this.spacing;
 
-//         return this.ctx && h > 0 ? Math.ceil(this.ctx.canvas.height / h) : 0;
-//     }
+        return w > 0 ? Math.floor(this.ctx.canvas.width / w) : 0;
+    }
 
-//     private getVisibleRange(): ListRange {
-//         const totalTileHeight = this.getTotalTileHeight();
-//         const visibleColumns = this.getVisibleColumnCount();
-//         const visibleRows = this.getVisibleRowCount();
+    private getX0() {
+        if (this.padding.left == 'auto') {
+            const visibleColumns = this.getVisibleColumnCount();
+            const totalTileWidth = this.tileWidth + this.spacing;
 
-//         const start = Math.floor(this.scrollOffset / totalTileHeight) * visibleColumns;
-//         const end = start + visibleColumns * (visibleRows + 2);
+            return (this.ctx.canvas.width - visibleColumns * totalTileWidth) / 2;
+        } else {
+            return this.padding.left;
+        }
+    }
 
-//         return { start, end };
-//     }
+    private getY0(scrollOffset: number) {
+        const h = this.tileHeight + this.spacing;
 
-//     private getTotalRowCount() {
-//         const n = this.getVisibleColumnCount();
+        return h > 0 ? this.padding.top - scrollOffset % h : 0;
+    }
 
-//         return n > 0 ? Math.ceil(this.dataSource.length / n) : 0;
-//     }
+    private formatDate(date: Date): string {
+        const year = date.getUTCFullYear();
+        const month = date.getUTCMonth();
+        const day = date.getUTCDay();
 
-//     private getX0() {
-//         if (this.ctx && this.padding.left == 'auto') {
-//             const visibleColumns = this.getVisibleColumnCount();
-//             const totalTileWidth = this.getTotalTileWidth();
+        return `${year}-${month}-${day}`;
+    }
 
-//             return (this.ctx.canvas.width - visibleColumns * totalTileWidth) / 2;
-//         } else if (typeof (this.padding.left) === 'number') {
-//             return this.padding.left;
-//         } else {
-//             return 0;
-//         }
-//     }
+    private createHeader(position: Point) {
+        const w = this.getVisibleColumnCount() * (this.tileWidth + this.spacing);
+        const h = this.headerHeight;
 
-//     private getY0() {
-//         const totalTileHeight = this.getTotalTileHeight();
+        const section = new LayoutRegion(position, w, h);
 
-//         return this.padding.top - (this.scrollOffset % totalTileHeight);
-//     }
+        this.regions.push(section);
 
-//     setScrollOffset(scrollOffset: number) {
-//         this.scrollOffset = scrollOffset;
-//     }
+        return section;
+    }
 
-//     getScrollHeight(): number {
-//         if (this.ctx) {
-//             return this.getTotalRowCount() * this.getTotalTileHeight();
-//         }
-//         else {
-//             return 0;
-//         }
-//     }
+    private createRow(position: Point, n: number) {
+        const w = this.getVisibleColumnCount() * (this.tileWidth + this.spacing);
+        const h = this.tileHeight + this.spacing;
 
-//     draw(): void {
-//         if (!this.ctx || !this.dataSource) {
-//             return;
-//         }
+        const section = new LayoutRegion(position, w, h);
+        section.range.start = n;
 
-//         const dateFormatter = new Intl.DateTimeFormat(Intl.DateTimeFormat().resolvedOptions().locale);
-//         let currentDay: string = "";
+        this.regions.push(section);
 
-//         const totalTileWidth = this.getTotalTileWidth();
-//         const totalTileHeight = this.getTotalTileHeight();
+        return section;
+    }
 
-//         const canvasWidth = this.ctx.canvas.width;
-//         const canvasHeight = this.ctx.canvas.height;
+    getScrollHeight(): number {
+        const stopwatch = new Stopwatch();
+        stopwatch.start();
 
-//         this.ctx.clearRect(0, 0, canvasWidth, canvasHeight);
+        const x0 = this.getX0();
+        const y0 = this.getY0(0);
 
-//         const x0 = this.getX0();
-//         const y0 = this.getY0();
+        let x = x0;
+        let y = y0;
 
-//         let x = x0;
-//         let y = y0;
+        let date = '';
+        let row: LayoutRegion;
+        
+        this.regions = [];
 
-//         const range = this.getVisibleRange();
+        this.dataSource.data$.value.forEach((thumbnail, n) => {
+            if (!thumbnail) {
+                return;
+            }
 
-//         this.dataSource.loadRange(range);
+            let d = this.formatDate(thumbnail.dateModified);
 
-//         for (let n = range.start; n < range.end; n++) {
-//             if (n > this.dataSource.length) {
-//                 break;
-//             }
+            if (date == '') {
+                date = d;
+            }
 
-//             const item = this.dataSource.data$.value[n];
+            if (date != d) {
+                date = d;
 
-//             if (item) {
-//                 let day = dateFormatter.format(item.dateModified);
+                y += this.spacing;
 
-//                 if (currentDay != day) {
-//                     currentDay = day;
+                this.createHeader(new Point(x0, y));
 
-//                     x = x0;
+                y += this.headerHeight + this.spacing;
 
-//                     if (y != y0) {
-//                         y += (totalTileHeight + 50);
-//                     }
+                row = this.createRow(new Point(x0, y), n);
 
-//                     this.ctx.font = 16 * window.devicePixelRatio + "px Roboto";
-//                     this.ctx.fillStyle = '#000';
-//                     this.ctx.fillText(day, x, y);
+                x = x0;
+                y += this.tileHeight + this.spacing;
+            }
 
-//                     y += 20;
-//                 }
+            if (row) {
+                row.range.end = n;
+            }
 
-//                 if (item.image) {
-//                     this.ctx.drawImage(item.image, x, y, this.tileWidth, this.tileHeight);
-//                 } else {
-//                     this.ctx.fillStyle = '#eee';
-//                     this.ctx.fillRect(x, y, this.tileWidth, this.tileHeight);
-//                 }
+            if (x + this.tileHeight + this.spacing > this.viewport.w) {
+                y += this.spacing;
 
-//                 x += totalTileWidth;
-//             }
+                row = this.createRow(new Point(x0, y), n);
 
-//             if (x + totalTileWidth > canvasWidth) {
-//                 x = x0;
-//                 y += totalTileHeight;
-//             }
-//         }
-//     }
+                x = x0;
+                y += this.tileHeight + this.spacing;
+            }
 
-//     drawImage(x: number, y: number, image: HTMLImageElement): void {
-//         if (this.ctx) {
-//             const w = this.getTotalTileWidth() / image.width;
-//             const h = this.getTotalTileHeight() / image.height;
-//             const s = Math.min(w, h) * window.devicePixelRatio;
+            x += this.tileWidth + this.spacing;
+        });
 
-//             this.ctx.drawImage(image, x, y, image.width * s, image.height * s);
-//         }
-//     }
-// }
+        stopwatch.stop();
+
+        return y + this.padding.bottom - this.viewport.h / window.devicePixelRatio;
+    }
+
+    draw(): void {
+        this.ctx.clearRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
+
+        const regions = this.regions.filter(s => this.viewport.collision(s));
+
+        regions.forEach(s => {
+            let p = s.p.subtract(this.viewport.p);
+
+            this.ctx.strokeStyle = '#f00';
+            this.ctx.strokeRect(p.x, p.y, s.w, s.h);
+        })
+    }
+}

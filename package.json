@@ -6,7 +6,8 @@
     "build": "tsc ./src/app.ts && ng build --base-href=./",
     "watch": "tsc -w",
     "start": "npm run build && electron ./src/app.js ",
-    "electron": "electron ./src/app.js "
+    "electron": "electron ./src/app.js ",
+    "index": "tsc ./src/indexer.ts && node ./src/indexer.js"
   },
   "author": "Sebastian Faubel",
   "license": "MIT",
@@ -42,6 +43,7 @@
     "@angular/platform-browser": "~13.1.0",
     "@angular/platform-browser-dynamic": "~13.1.0",
     "@angular/router": "~13.1.0",
+    "@mathigon/euclid": "^1.0.7",
     "@prisma/client": "^3.7.0",
     "path": "^0.12.7",
     "prisma": "^3.7.0",

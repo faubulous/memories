@@ -1,18 +1,46 @@
+import { Point, Rectangle } from "@mathigon/euclid";
 import { VirtualCanvasDataSource } from "./virtual-canvas.data-source";
 import { VirtualCanvasLayouter } from "./virtual-canvas-layouter";
 
+/**
+ * Base class for virtual canvas layouters.
+ */
 export abstract class VirtualCanvasLayouterBase implements VirtualCanvasLayouter {
-    protected scrollOffset: number = 0;
+    /**
+     * The visible region of the whole canvas.
+     */
+    protected viewport = new Rectangle(new Point());
 
     constructor(protected ctx: CanvasRenderingContext2D, protected dataSource: VirtualCanvasDataSource) {
         // Trigger a repaint when the data has changed.
         dataSource.data$.subscribe(this.render.bind(this));
     }
 
+    /**
+     * Get the height of the scrollbar in pixels.
+     */
     abstract getScrollHeight(): number;
 
+    /**
+     * Set a new scrollbar position.
+     * @param scrollOffset New scroll offset in pixels.
+     */
     setScrollOffset(scrollOffset: number) {
-        this.scrollOffset = scrollOffset;
+        const w = this.viewport.w;
+        const h = this.viewport.h;
+
+        this.viewport = new Rectangle(new Point(0, scrollOffset), w, h);
+    }
+
+    /*
+     * Update the size of the viewport.
+     * @param width Device independent width of the viewport in pixels.
+     * @param height Device independent height of the viewport in pixels.
+     */
+    setViewportSize(width: number, height: number): void {
+        const r = window.devicePixelRatio;
+
+        this.viewport = new Rectangle(new Point(), width * r, height * r);
     }
 
     render(): void {
@@ -20,14 +48,4 @@ export abstract class VirtualCanvasLayouterBase implements VirtualCanvasLayouter
     }
 
     protected abstract draw(): void;
-
-    protected drawImage(x: number, y: number, width: number, height: number, image: HTMLImageElement): void {
-        if (this.ctx) {
-            const w = width / image.width;
-            const h = height / image.height;
-            const s = Math.min(w, h) * window.devicePixelRatio;
-
-            this.ctx.drawImage(image, x, y, image.width * s, image.height * s);
-        }
-    }
 }

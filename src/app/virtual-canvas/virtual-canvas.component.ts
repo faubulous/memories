@@ -1,8 +1,7 @@
 import { ChangeDetectionStrategy, Component, ElementRef, HostListener, ViewChild } from '@angular/core';
 import { VirtualCanvasDataSource } from './virtual-canvas.data-source';
 import { VirtualCanvasLayouter } from './virtual-canvas-layouter';
-import { GridLayout } from './layouts/grid-layout';
-import { BehaviorSubject } from 'rxjs';
+import { TimelineLayout } from './layouts/timeline-layout';
 
 // See: https://medium.com/angular-in-depth/how-to-get-started-with-canvas-animations-in-angular-2f797257e5b4
 @Component({
@@ -35,15 +34,15 @@ export class VirtualCanvasComponent {
   async ngOnInit() {
     if (this.canvas) {
       this.ctx = this.canvas.nativeElement.getContext('2d');
-
-      this.updateCanvasSize();
     }
 
     if (this.ctx) {
-      this.layouter = new GridLayout(this.ctx, this.dataSource);
+      this.layouter = new TimelineLayout(this.ctx, this.dataSource);
 
       // Connect to the database and load inital data.
       await this.dataSource.init();
+
+      this.updateCanvasSize();
     }
   }
 
@@ -68,9 +67,11 @@ export class VirtualCanvasComponent {
    */
   @HostListener('window:resize')
   onResize() {
-    this.updateCanvasSize();
+    if (!this.layouter) {
+      return;
+    }
 
-    this.layouter?.render();
+    this.updateCanvasSize();
   }
 
   /**
@@ -89,14 +90,19 @@ export class VirtualCanvasComponent {
     // The device pixel ratio accounts for high-dpi screens..
     this.ctx.canvas.width = w * r;
     this.ctx.canvas.height = h * r;
-    this.ctx.canvas.style.width = w + "px";
-    this.ctx.canvas.style.height = h + "px";
+    this.ctx.canvas.style.width = w + 'px';
+    this.ctx.canvas.style.height = h + 'px';
 
     if (!this.spacer || !this.layouter) {
       return;
     }
 
+    // Inform the layouter about the size change..
+    this.layouter.setViewportSize(w, h);
+
     // Update the scrollbar height..
     this.spacer.nativeElement.style.height = this.layouter.getScrollHeight() + 'px';
+
+    this.layouter.render();
   }
 }

@@ -3,5 +3,7 @@ export interface VirtualCanvasLayouter {
 
     getScrollHeight(): number;
 
+    setViewportSize(width: number, height: number): void;
+
     render(): void;
 }

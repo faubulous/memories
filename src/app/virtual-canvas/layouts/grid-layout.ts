@@ -51,7 +51,7 @@ export class GridLayout extends VirtualCanvasLayouterBase {
         const visibleColumns = this.getVisibleColumnCount();
         const visibleRows = this.getVisibleRowCount();
 
-        const start = Math.floor(this.scrollOffset / totalTileHeight) * visibleColumns;
+        const start = Math.floor(this.viewport.p.y / totalTileHeight) * visibleColumns;
         const end = start + visibleColumns * (visibleRows + 2);
 
         return { start, end };
@@ -77,7 +77,7 @@ export class GridLayout extends VirtualCanvasLayouterBase {
     private getY0() {
         const totalTileHeight = this.getTotalTileHeight();
 
-        return this.padding.top - (this.scrollOffset % totalTileHeight);
+        return this.padding.top - (this.viewport.p.y % totalTileHeight);
     }
 
     getScrollHeight(): number {
