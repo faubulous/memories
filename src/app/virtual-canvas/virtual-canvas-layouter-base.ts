@@ -1,6 +1,7 @@
 import { Point, Rectangle } from "@mathigon/euclid";
 import { VirtualCanvasDataSource } from "./virtual-canvas.data-source";
 import { VirtualCanvasLayouter } from "./virtual-canvas-layouter";
+import { NgZone } from "@angular/core";
 
 /**
  * Base class for virtual canvas layouters.
@@ -11,7 +12,7 @@ export abstract class VirtualCanvasLayouterBase implements VirtualCanvasLayouter
      */
     protected viewport = new Rectangle(new Point());
 
-    constructor(protected ctx: CanvasRenderingContext2D, protected dataSource: VirtualCanvasDataSource) {
+    constructor(protected ngZone: NgZone, protected ctx: CanvasRenderingContext2D, protected dataSource: VirtualCanvasDataSource) {
         // Trigger a repaint when the data has changed.
         dataSource.data$.subscribe(this.render.bind(this));
     }
@@ -44,7 +45,9 @@ export abstract class VirtualCanvasLayouterBase implements VirtualCanvasLayouter
     }
 
     render(): void {
-        window.requestAnimationFrame(this.draw.bind(this));
+        this.ngZone.runOutsideAngular(() => {
+            window.requestAnimationFrame(this.draw.bind(this))
+        });
     }
 
     protected abstract draw(): void;

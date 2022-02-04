@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, ElementRef, HostListener, ViewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, ElementRef, HostListener, NgZone, ViewChild } from '@angular/core';
 import { VirtualCanvasDataSource } from './virtual-canvas.data-source';
 import { VirtualCanvasLayouter } from './virtual-canvas-layouter';
 import { TimelineLayout } from './layouts/timeline-layout';
@@ -26,7 +26,7 @@ export class VirtualCanvasComponent {
 
   private layouter: VirtualCanvasLayouter | null = null;
 
-  constructor() { }
+  constructor(private ngZone: NgZone) { }
 
   /**
    * Initialize the data source and graphics context.
@@ -37,7 +37,7 @@ export class VirtualCanvasComponent {
     }
 
     if (this.ctx) {
-      this.layouter = new TimelineLayout(this.ctx, this.dataSource);
+      this.layouter = new TimelineLayout(this.ngZone, this.ctx, this.dataSource);
 
       // Connect to the database and load inital data.
       await this.dataSource.init();

@@ -1,4 +1,5 @@
 import { ListRange } from "@angular/cdk/collections";
+import { NgZone } from "@angular/core";
 import { VirtualCanvasLayouterBase } from "../virtual-canvas-layouter-base";
 import { VirtualCanvasDataSource } from "../virtual-canvas.data-source";
 
@@ -22,8 +23,8 @@ export class GridLayout extends VirtualCanvasLayouterBase {
 
     private tileHeight = 400;
 
-    constructor(ctx: CanvasRenderingContext2D, dataSource: VirtualCanvasDataSource) {
-        super(ctx, dataSource);
+    constructor(protected ngZone: NgZone, ctx: CanvasRenderingContext2D, dataSource: VirtualCanvasDataSource) {
+        super(ngZone, ctx, dataSource);
     }
 
     private getTotalTileWidth() {
