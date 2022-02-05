@@ -1,7 +1,7 @@
 import { ListRange } from "@angular/cdk/collections";
 import { BehaviorSubject, debounceTime, distinctUntilChanged } from "rxjs";
-import { GetFilesRequest, GetFilesResponse, InitFilesRequest, InitFilesResponse } from "../../electron/IPC/DatabaseChannel";
-import { IpcService } from "../../shared/IpcService";
+import { GetFilesRequest, GetFilesResponse, InitFilesRequest, InitFilesResponse } from "../../../electron/IPC/DatabaseChannel";
+import { IpcService } from "../../../shared/IpcService";
 
 export interface Thumbnail {
   id?: number;

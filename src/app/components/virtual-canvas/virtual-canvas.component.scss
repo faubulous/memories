@@ -1,0 +1,26 @@
+.virtual-canvas-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.virtual-canvas-scroll-container {
+  position: absolute;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+  overflow-y: auto;
+  overflow-x: auto;
+}
+
+.virtual-canvas-viewport {
+  position: absolute;
+  z-index: 0;
+  width: 100%;
+  height: 100%;
+}
+
+canvas {
+  width: 100%;
+  height: 100%
+}

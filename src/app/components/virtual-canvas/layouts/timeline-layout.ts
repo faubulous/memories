@@ -1,21 +1,10 @@
 import { ListRange } from "@angular/cdk/collections";
-import { Point, Rectangle } from "@mathigon/euclid";
+import { NgZone } from "@angular/core";
+import { Point } from "@mathigon/euclid";
+import { VirtualCanvasLayoutRegion } from "../virtual-canvas-layout-region";
 import { VirtualCanvasLayouterBase } from "../virtual-canvas-layouter-base";
 import { VirtualCanvasDataSource } from "../virtual-canvas.data-source";
 import * as moment from "moment";
-import { NgZone } from "@angular/core";
-
-class LayoutRegion extends Rectangle {
-    range?: ListRange;
-
-    date: Date;
-
-    constructor(date: Date, p: Point, width?: number, height?: number) {
-        super(p, width, height);
-
-        this.date = date;
-    }
-}
 
 export class TimelineLayout extends VirtualCanvasLayouterBase {
     private padding:
@@ -25,7 +14,7 @@ export class TimelineLayout extends VirtualCanvasLayouterBase {
             right: number | 'auto',
             bottom: number
         } = {
-            top: 10 * window.devicePixelRatio,
+            top: 50 * window.devicePixelRatio,
             left: 'auto',
             right: 'auto',
             bottom: 10 * window.devicePixelRatio
@@ -39,7 +28,9 @@ export class TimelineLayout extends VirtualCanvasLayouterBase {
 
     private tileHeight = 200 * window.devicePixelRatio;
 
-    private regions: Array<LayoutRegion> = [];
+    private regions: Array<VirtualCanvasLayoutRegion> = [];
+
+    private activeRegion: VirtualCanvasLayoutRegion | undefined;
 
     constructor(ngZone: NgZone, ctx: CanvasRenderingContext2D, dataSource: VirtualCanvasDataSource) {
         super(ngZone, ctx, dataSource);
@@ -68,7 +59,7 @@ export class TimelineLayout extends VirtualCanvasLayouterBase {
         return h > 0 ? this.padding.top - scrollOffset % h : 0;
     }
 
-    private getRange(regions: LayoutRegion[]): ListRange | undefined {
+    private getRange(regions: VirtualCanvasLayoutRegion[]): ListRange | undefined {
         const ranges = regions.filter(r => r.range).map(r => r.range as ListRange);
 
         if (ranges.length) {
@@ -95,7 +86,7 @@ export class TimelineLayout extends VirtualCanvasLayouterBase {
         const w = this.getVisibleColumnCount() * (this.tileWidth + this.spacing);
         const h = this.headerHeight;
 
-        const section = new LayoutRegion(date, position, w, h);
+        const section = new VirtualCanvasLayoutRegion(date, position, w, h);
 
         this.regions.push(section);
 
@@ -106,7 +97,7 @@ export class TimelineLayout extends VirtualCanvasLayouterBase {
         const w = this.getVisibleColumnCount() * (this.tileWidth + this.spacing);
         const h = this.tileHeight;
 
-        const section = new LayoutRegion(date, position, w, h);
+        const section = new VirtualCanvasLayoutRegion(date, position, w, h);
         section.range = { start: n, end: n };
 
         this.regions.push(section);
@@ -122,7 +113,7 @@ export class TimelineLayout extends VirtualCanvasLayouterBase {
         let y = y0;
 
         let date = '';
-        let row: LayoutRegion;
+        let row: VirtualCanvasLayoutRegion;
 
         this.regions = [];
 
@@ -211,5 +202,17 @@ export class TimelineLayout extends VirtualCanvasLayouterBase {
                 this.ctx.fillText(moment(s.date).format("dddd, Do MMMM"), p.x, p.y + s.h - 12 * window.devicePixelRatio);
             }
         })
+
+        if (regions.length) {
+            const x0 = this.getX0();
+
+            this.ctx.fillStyle = 'rgba(255,255,255,.98)';
+            this.ctx.fillRect(0, 0, this.ctx.canvas.width, 50 * window.devicePixelRatio);
+
+            this.ctx.font = `900 ${26 * window.devicePixelRatio}px Inter`;
+            this.ctx.fillStyle = '#000';
+            this.ctx.fillText(moment(regions[0].date).format("YYYY"), x0, 40 * window.devicePixelRatio);
+
+        }
     }
 }

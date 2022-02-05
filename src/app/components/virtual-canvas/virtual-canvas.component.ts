@@ -14,6 +14,9 @@ export class VirtualCanvasComponent {
   @ViewChild('viewport', { static: true })
   viewport: ElementRef<HTMLElement> | null = null;
 
+  @ViewChild('container', { static: true })
+  container: ElementRef<HTMLElement> | null = null;
+
   @ViewChild('spacer', { static: true })
   spacer: ElementRef<HTMLElement> | null = null;
 
@@ -44,19 +47,21 @@ export class VirtualCanvasComponent {
 
       this.updateCanvasSize();
     }
+
+    if (this.container) {
+      this.container.nativeElement.onscroll = this.onScroll.bind(this);
+    }
   }
 
   /**
    * Handle window scroll events.
    */
-  @HostListener('window:scroll')
   onScroll() {
-    if (!this.layouter) {
+    if (!this.layouter || !this.container) {
       return;
     }
 
-    // Todo: Change template to include a container that has the scrollbar.
-    const offset = document.documentElement.scrollTop;
+    const offset = this.container.nativeElement.scrollTop;
 
     this.layouter.setScrollOffset(offset);
     this.layouter.render();
