@@ -1,9 +1,10 @@
-import { BehaviorSubject } from "rxjs";
 import { Point, Rectangle } from "@mathigon/euclid";
+import { Stage } from "konva/lib/Stage";
 import { VirtualCanvasDataSource } from "./virtual-canvas.data-source";
 import { VirtualCanvasLayouter } from "./virtual-canvas-layouter";
+import { Layer } from "konva/lib/Layer";
+import Konva from "konva";
 import { NgZone } from "@angular/core";
-import { VirtualCanvasLayoutRegion } from "./virtual-canvas-layout-region";
 
 /**
  * Base class for virtual canvas layouters.
@@ -14,9 +15,16 @@ export abstract class VirtualCanvasLayouterBase implements VirtualCanvasLayouter
      */
     protected viewport = new Rectangle(new Point());
 
-    constructor(protected ngZone: NgZone, protected ctx: CanvasRenderingContext2D, protected dataSource: VirtualCanvasDataSource) {
+    protected layer = new Konva.Layer({ clearBeforeDraw: true });
+
+    constructor(protected zone: NgZone, protected stage: Stage, protected dataSource: VirtualCanvasDataSource) {
         // Trigger a repaint when the data has changed.
         dataSource.data$.subscribe(this.render.bind(this));
+
+        Konva.autoDrawEnabled = false;
+
+        this.stage.clear();
+        this.stage.add(this.layer);
     }
 
     /**
@@ -41,15 +49,11 @@ export abstract class VirtualCanvasLayouterBase implements VirtualCanvasLayouter
      * @param height Device independent height of the viewport in pixels.
      */
     setViewportSize(width: number, height: number): void {
-        const r = window.devicePixelRatio;
-
-        this.viewport = new Rectangle(new Point(), width * r, height * r);
+        this.viewport = new Rectangle(new Point(), width, height);
     }
 
     render(): void {
-        this.ngZone.runOutsideAngular(() => {
-            window.requestAnimationFrame(this.draw.bind(this))
-        });
+        this.zone.runOutsideAngular(() => this.draw());
     }
 
     protected abstract draw(): void;

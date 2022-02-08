@@ -1,7 +1,9 @@
 import { ChangeDetectionStrategy, Component, ElementRef, HostListener, NgZone, ViewChild } from '@angular/core';
+import Konva from 'konva';
+import { Stage } from 'konva/lib/Stage';
 import { VirtualCanvasDataSource } from './virtual-canvas.data-source';
 import { VirtualCanvasLayouter } from './virtual-canvas-layouter';
-import { TimelineLayout } from './layouts/timeline-layout';
+import { TimelineLayout2 } from './layouts/timeline-layout2';
 
 // See: https://medium.com/angular-in-depth/how-to-get-started-with-canvas-animations-in-angular-2f797257e5b4
 @Component({
@@ -12,35 +14,34 @@ import { TimelineLayout } from './layouts/timeline-layout';
 })
 export class VirtualCanvasComponent {
   @ViewChild('viewport', { static: true })
-  viewport: ElementRef<HTMLElement> | null = null;
+  viewport: ElementRef<HTMLDivElement> | null = null;
 
   @ViewChild('container', { static: true })
-  container: ElementRef<HTMLElement> | null = null;
+  container: ElementRef<HTMLDivElement> | null = null;
 
   @ViewChild('spacer', { static: true })
   spacer: ElementRef<HTMLElement> | null = null;
 
-  @ViewChild('canvas', { static: true })
-  canvas: ElementRef<HTMLCanvasElement> | null = null;
-
-  private ctx: CanvasRenderingContext2D | null = null;
+  private stage: Stage | undefined;
 
   private dataSource: VirtualCanvasDataSource = new VirtualCanvasDataSource();
 
   private layouter: VirtualCanvasLayouter | null = null;
 
-  constructor(private ngZone: NgZone) { }
+  constructor(private zone: NgZone) { }
 
   /**
    * Initialize the data source and graphics context.
    */
   async ngOnInit() {
-    if (this.canvas) {
-      this.ctx = this.canvas.nativeElement.getContext('2d');
+    if (this.viewport) {
+      this.stage = new Konva.Stage({
+        container: this.viewport.nativeElement
+      });
     }
 
-    if (this.ctx) {
-      this.layouter = new TimelineLayout(this.ngZone, this.ctx, this.dataSource);
+    if (this.stage) {
+      this.layouter = new TimelineLayout2(this.zone, this.stage, this.dataSource);
 
       // Connect to the database and load inital data.
       await this.dataSource.init();
@@ -84,19 +85,14 @@ export class VirtualCanvasComponent {
    * size to the display resolution to support high DPI screens.
    */
   updateCanvasSize() {
-    if (!this.viewport || !this.ctx) {
+    if (!this.viewport || !this.stage) {
       return;
     }
 
-    const r = window.devicePixelRatio;
     const w = this.viewport.nativeElement.clientWidth;
     const h = this.viewport.nativeElement.clientHeight;
 
-    // The device pixel ratio accounts for high-dpi screens..
-    this.ctx.canvas.width = w * r;
-    this.ctx.canvas.height = h * r;
-    this.ctx.canvas.style.width = w + 'px';
-    this.ctx.canvas.style.height = h + 'px';
+    this.stage.setSize({ width: w, height: h });
 
     if (!this.spacer || !this.layouter) {
       return;

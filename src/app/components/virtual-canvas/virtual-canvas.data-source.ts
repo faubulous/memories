@@ -11,6 +11,8 @@ export interface Thumbnail {
   image?: HTMLImageElement;
 
   dateModified: Date;
+
+  path: string;
 }
 
 export class VirtualCanvasDataSource {
@@ -20,7 +22,7 @@ export class VirtualCanvasDataSource {
 
   readonly data$ = new BehaviorSubject<(Thumbnail | undefined)[]>(this._dataCache);
 
-  private readonly _pageSize = 10;
+  private readonly _pageSize = 20;
 
   private readonly _loadRange$ = new BehaviorSubject<ListRange>({ start: 0, end: 0 });
 
@@ -82,35 +84,31 @@ export class VirtualCanvasDataSource {
     result.files.forEach((f, m) => {
       if(f.thumbnail) {
         let image = new Image();
-
+        image.src = f.thumbnail;
         image.onload = () => {
           thumbnails.splice(m, 1, {
             id: f.id,
             type: f.type,
+            path: f.path,
             dateModified: f.dateModified,
-            image: image,
+            image: image
           });
 
-          if(thumbnails.length == result.files.length) {
-            this._dataCache.splice(skip, take, ...thumbnails);
-
-            this.data$.next(this._dataCache);
-          }
-        }
-
-        image.src = f.thumbnail;
-      } else {
-        thumbnails.splice(m, 1, {
-          id: f.id,
-          type: f.type,
-          image: null
-        });
-
-        if(thumbnails.length == result.files.length) {
           this._dataCache.splice(skip, take, ...thumbnails);
 
           this.data$.next(this._dataCache);
         }
+      } else {
+        thumbnails.splice(m, 1, {
+          id: f.id,
+          type: f.type,
+          path: f.path,
+          image: null
+        });
+
+        this._dataCache.splice(skip, take, ...thumbnails);
+
+        this.data$.next(this._dataCache);
       }
     })
   }

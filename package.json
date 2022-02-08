@@ -46,6 +46,7 @@
     "@mathigon/euclid": "^1.0.7",
     "@prisma/client": "^3.7.0",
     "boostrap": "^2.0.0",
+    "konva": "^8.3.2",
     "moment": "^2.29.1",
     "path": "^0.12.7",
     "prisma": "^3.7.0",
