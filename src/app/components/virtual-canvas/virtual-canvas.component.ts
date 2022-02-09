@@ -36,7 +36,8 @@ export class VirtualCanvasComponent {
   async ngOnInit() {
     if (this.viewport) {
       this.stage = new Konva.Stage({
-        container: this.viewport.nativeElement
+        container: this.viewport.nativeElement,
+        preventDefault: false
       });
     }
 
@@ -62,9 +63,7 @@ export class VirtualCanvasComponent {
       return;
     }
 
-    const offset = this.container.nativeElement.scrollTop;
-
-    this.layouter.setScrollOffset(offset);
+    this.layouter.setScrollOffset(this.container.nativeElement.scrollTop);
     this.layouter.render();
   }
 

@@ -64,9 +64,15 @@ export class TimelineLayout2 extends VirtualCanvasLayouterBase {
             });
 
             t.on('pointerclick', (e) => {
-                const n = Number(t.id());
+                console.warn('pointerclick', e);
+            });
 
-                console.warn('click', this.dataSource.data$.value[n]);
+            t.on('mouseenter', () => {
+                this.stage.container().style.cursor = 'pointer';
+            });
+
+            t.on('mouseleave', () => {
+                this.stage.container().style.cursor = 'default';
             });
 
             this.thumbnails.push(t);

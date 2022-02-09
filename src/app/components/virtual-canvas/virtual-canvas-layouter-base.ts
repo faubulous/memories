@@ -15,7 +15,10 @@ export abstract class VirtualCanvasLayouterBase implements VirtualCanvasLayouter
      */
     protected viewport = new Rectangle(new Point());
 
-    protected layer = new Konva.Layer({ clearBeforeDraw: true });
+    protected layer = new Konva.Layer({
+        clearBeforeDraw: true,
+        preventDefault: false
+    });
 
     constructor(protected zone: NgZone, protected stage: Stage, protected dataSource: VirtualCanvasDataSource) {
         // Trigger a repaint when the data has changed.
