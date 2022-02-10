@@ -1,10 +1,12 @@
+import { Router } from "@angular/router";
 import { ListRange } from "@angular/cdk/collections";
-import { NgZone } from "@angular/core";
 import { Point } from "@mathigon/euclid";
+import { Stage } from "konva/lib/Stage";
 import { VirtualCanvasLayoutRegion } from "../virtual-canvas-layout-region";
 import { VirtualCanvasLayouterBase } from "../virtual-canvas-layouter-base";
 import { VirtualCanvasDataSource } from "../virtual-canvas.data-source";
 import * as moment from "moment";
+import Konva from "konva";
 
 export class TimelineLayout extends VirtualCanvasLayouterBase {
     private padding:
@@ -14,32 +16,96 @@ export class TimelineLayout extends VirtualCanvasLayouterBase {
             right: number | 'auto',
             bottom: number
         } = {
-            top: 50 * window.devicePixelRatio,
+            top: 40,
             left: 'auto',
             right: 'auto',
-            bottom: 10 * window.devicePixelRatio
+            bottom: 10
         };
 
-    private headerHeight = 50 * window.devicePixelRatio;
+    private headerHeight = 50;
 
-    private spacing = 4 * window.devicePixelRatio;
+    private spacing = 4;
 
-    private tileWidth = 200 * window.devicePixelRatio;
+    private tileWidth = 200;
 
-    private tileHeight = 200 * window.devicePixelRatio;
+    private tileHeight = 200;
 
     private regions: Array<VirtualCanvasLayoutRegion> = [];
 
-    private activeRegion: VirtualCanvasLayoutRegion | undefined;
+    private title: Konva.Text = new Konva.Text({
+        listening: false,
+        fontSize: 26,
+        fontFamily: 'Inter',
+        fontStyle: 'bold',
+        fill: '#000'
+    });
 
-    constructor(ngZone: NgZone, ctx: CanvasRenderingContext2D, dataSource: VirtualCanvasDataSource) {
-        super(ngZone, ctx, dataSource);
+    private titleBackground = new Konva.Rect({
+        listening: false,
+        height: 50,
+        fill: 'rgba(255,255,255,.98)'
+    })
+
+    private headers: Array<Konva.Text> = [];
+
+    private thumbnails: Array<Konva.Image> = [];
+
+    constructor(router: Router, stage: Stage, dataSource: VirtualCanvasDataSource) {
+        super(router, stage, dataSource);
+
+        for (let i = 0; i < 80; i++) {
+            const t = new Konva.Image({
+                listening: false,
+                visible: false,
+                fill: '#eee',
+                width: this.tileWidth,
+                height: this.tileHeight,
+                image: undefined
+            });
+
+            t.on('pointerclick', (e) => {
+                const id = Number(t.id());
+                const file = this.dataSource.data$.value[id];
+
+                if (file) {
+                    this.router.navigateByUrl(`/view?file=${file.path}`);
+                }
+            });
+
+            t.on('mouseenter', () => {
+                this.stage.container().style.cursor = 'pointer';
+            });
+
+            t.on('mouseleave', () => {
+                this.stage.container().style.cursor = 'default';
+            });
+
+            this.thumbnails.push(t);
+            this.layer.add(t);
+        }
+
+        for (let i = 0; i < 20; i++) {
+            const h = new Konva.Text({
+                listening: false,
+                visible: false,
+                fill: '#000',
+                fontSize: 16,
+                fontFamily: 'Inter',
+                fontWeight: 500
+            })
+
+            this.headers.push(h);
+            this.layer.add(h);
+        }
+
+        this.layer.add(this.titleBackground);
+        this.layer.add(this.title);
     }
 
     private getVisibleColumnCount() {
         const w = this.tileWidth + this.spacing;
 
-        return w > 0 ? Math.floor(this.ctx.canvas.width / w) : 0;
+        return w > 0 ? Math.floor(this.viewport.w / w) : 0;
     }
 
     private getX0() {
@@ -47,7 +113,7 @@ export class TimelineLayout extends VirtualCanvasLayouterBase {
             const visibleColumns = this.getVisibleColumnCount();
             const totalTileWidth = this.tileWidth + this.spacing;
 
-            return (this.ctx.canvas.width - visibleColumns * totalTileWidth) / 2;
+            return (this.viewport.w - visibleColumns * totalTileWidth) / 2;
         } else {
             return this.padding.left;
         }
@@ -60,13 +126,12 @@ export class TimelineLayout extends VirtualCanvasLayouterBase {
     }
 
     private getRange(regions: VirtualCanvasLayoutRegion[]): ListRange | undefined {
-        const ranges = regions.filter(r => r.range).map(r => r.range as ListRange);
-
-        if (ranges.length) {
+        if (regions) {
+            const ranges = regions.filter(r => r.range).map(r => r.range as ListRange);
             const n = this.getVisibleColumnCount();
 
-            const start = Math.max(0, ranges[0].start - 2 * n);
-            const end = Math.min(ranges[ranges.length - 1].end + 2 * n, this.dataSource.length - 1);
+            const start = Math.max(0, ranges[0]?.start - 6 * n);
+            const end = Math.min(ranges[ranges.length - 1]?.end + 6 * n, this.dataSource.length - 1);
 
             return { start, end };
         } else {
@@ -140,16 +205,16 @@ export class TimelineLayout extends VirtualCanvasLayouterBase {
                 row = this.createRow(new Point(x0, y), thumbnail.dateModified, n);
 
                 x = x0;
-                y += this.tileHeight + this.spacing;
+                y += this.tileHeight;
             }
 
-            if (x + this.tileHeight + this.spacing > this.viewport.w) {
+            if (x + this.tileWidth + this.spacing > this.viewport.w) {
                 y += this.spacing;
 
                 row = this.createRow(new Point(x0, y), thumbnail.dateModified, n);
 
                 x = x0;
-                y += this.tileHeight + this.spacing;
+                y += this.tileHeight;
             } else if (row?.range) {
                 row.range.end = n;
             }
@@ -157,11 +222,13 @@ export class TimelineLayout extends VirtualCanvasLayouterBase {
             x += this.tileWidth + this.spacing;
         });
 
-        return y + this.padding.bottom - this.viewport.h / window.devicePixelRatio;
+        return y + this.padding.bottom - this.viewport.h;
     }
 
     draw(): void {
-        this.ctx.clearRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
+        if (!this.regions) {
+            return;
+        }
 
         const regions = this.regions.filter(s => this.viewport.collision(s));
         const range = this.getRange(regions);
@@ -170,12 +237,22 @@ export class TimelineLayout extends VirtualCanvasLayouterBase {
             this.dataSource.loadRange(range);
         }
 
+        this.headers.forEach(h => {
+            h.hide();
+            h.setPosition({ x: 0, y: 0 });
+        });
+
+        this.thumbnails.forEach(t => {
+            t.listening(false);
+            t.hide();
+            t.setPosition({ x: 0, y: 0 });
+        });
+
+        let i = 0;
+        let j = 0;
+
         regions.forEach(s => {
             let p = s.p.subtract(this.viewport.p);
-
-            // Uncomment to debug the layout regions.
-            // this.ctx.strokeStyle = '#f00';
-            // this.ctx.strokeRect(p.x, p.y, s.w, s.h);
 
             if (s.range) {
                 let x = p.x;
@@ -185,34 +262,41 @@ export class TimelineLayout extends VirtualCanvasLayouterBase {
                 do {
                     let item = this.dataSource.data$.value[n];
 
-                    if (item?.image) {
-                        this.ctx.drawImage(item.image, x, y, this.tileWidth, this.tileHeight);
-                    } else {
-                        this.ctx.fillStyle = '#eee';
-                        this.ctx.fillRect(x, y, this.tileWidth, this.tileHeight);
-                    }
+                    let tile = this.thumbnails[i];
+                    tile.id(n.toString());
+                    tile.setPosition({ x, y });
+                    tile.image(item?.image);
+                    tile.listening(true);
+                    tile.show();
 
                     x += this.tileWidth + this.spacing;
                     n += 1;
+                    i += 1;
                 }
                 while (n <= s.range.end);
-            } else {
-                this.ctx.font = `500 ${16 * window.devicePixelRatio}px Inter`;
-                this.ctx.fillStyle = '#000';
-                this.ctx.fillText(moment(s.date).format("dddd, Do MMMM"), p.x, p.y + s.h - 12 * window.devicePixelRatio);
             }
-        })
+            else {
+                let header = this.headers[j];
+                header.show();
+                header.setPosition({ x: p.x, y: p.y + 20 });
+                header.text(moment(s.date).format("dddd, Do MMMM"));
+
+                j += 1;
+            }
+        });
 
         if (regions.length) {
             const x0 = this.getX0();
 
-            this.ctx.fillStyle = 'rgba(255,255,255,.98)';
-            this.ctx.fillRect(0, 0, this.ctx.canvas.width, 50 * window.devicePixelRatio);
+            this.titleBackground.size({
+                width: this.viewport.w,
+                height: 50
+            })
 
-            this.ctx.font = `900 ${26 * window.devicePixelRatio}px Inter`;
-            this.ctx.fillStyle = '#000';
-            this.ctx.fillText(moment(regions[0].date).format("YYYY"), x0, 40 * window.devicePixelRatio);
-
+            this.title.setPosition({ x: x0, y: 12 });
+            this.title.text(moment(regions[0].date).format("YYYY"));
         }
+
+        this.layer.batchDraw();
     }
 }

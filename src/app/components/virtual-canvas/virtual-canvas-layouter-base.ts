@@ -1,10 +1,9 @@
+import { Router } from "@angular/router";
 import { Point, Rectangle } from "@mathigon/euclid";
 import { Stage } from "konva/lib/Stage";
 import { VirtualCanvasDataSource } from "./virtual-canvas.data-source";
 import { VirtualCanvasLayouter } from "./virtual-canvas-layouter";
-import { Layer } from "konva/lib/Layer";
 import Konva from "konva";
-import { NgZone } from "@angular/core";
 
 /**
  * Base class for virtual canvas layouters.
@@ -20,7 +19,7 @@ export abstract class VirtualCanvasLayouterBase implements VirtualCanvasLayouter
         preventDefault: false
     });
 
-    constructor(protected zone: NgZone, protected stage: Stage, protected dataSource: VirtualCanvasDataSource) {
+    constructor(protected router: Router, protected stage: Stage, protected dataSource: VirtualCanvasDataSource) {
         // Trigger a repaint when the data has changed.
         dataSource.data$.subscribe(this.render.bind(this));
 
@@ -56,7 +55,8 @@ export abstract class VirtualCanvasLayouterBase implements VirtualCanvasLayouter
     }
 
     render(): void {
-        this.zone.runOutsideAngular(() => this.draw());
+        // this.zone.runOutsideAngular(() => this.draw());
+        this.draw();
     }
 
     protected abstract draw(): void;

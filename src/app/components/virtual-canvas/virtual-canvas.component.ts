@@ -1,9 +1,10 @@
-import { ChangeDetectionStrategy, Component, ElementRef, HostListener, NgZone, ViewChild } from '@angular/core';
+import { Router } from '@angular/router';
+import { ChangeDetectionStrategy, Component, ElementRef, HostListener, ViewChild } from '@angular/core';
 import Konva from 'konva';
 import { Stage } from 'konva/lib/Stage';
 import { VirtualCanvasDataSource } from './virtual-canvas.data-source';
 import { VirtualCanvasLayouter } from './virtual-canvas-layouter';
-import { TimelineLayout2 } from './layouts/timeline-layout2';
+import { TimelineLayout } from './layouts/timeline-layout';
 
 // See: https://medium.com/angular-in-depth/how-to-get-started-with-canvas-animations-in-angular-2f797257e5b4
 @Component({
@@ -28,7 +29,7 @@ export class VirtualCanvasComponent {
 
   private layouter: VirtualCanvasLayouter | null = null;
 
-  constructor(private zone: NgZone) { }
+  constructor(private router: Router) { }
 
   /**
    * Initialize the data source and graphics context.
@@ -42,7 +43,7 @@ export class VirtualCanvasComponent {
     }
 
     if (this.stage) {
-      this.layouter = new TimelineLayout2(this.zone, this.stage, this.dataSource);
+      this.layouter = new TimelineLayout(this.router, this.stage, this.dataSource);
 
       // Connect to the database and load inital data.
       await this.dataSource.init();
