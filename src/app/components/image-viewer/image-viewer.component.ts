@@ -1,7 +1,8 @@
-import { ChangeDetectionStrategy, Component, HostListener } from '@angular/core';
+import { ChangeDetectionStrategy, Component, ElementRef, HostListener, ViewChild } from '@angular/core';
 import { Router } from '@angular/router';
-import { GalleryItem, ImageItem } from 'ng-gallery';
-import { BehaviorSubject } from 'rxjs';
+import { GalleryRef, ImageItem } from 'ng-gallery';
+import { GetFileContextRequest, GetFileContextResponse } from 'src/electron/IPC/DatabaseChannel';
+import { IpcService } from 'src/shared/IpcService';
 
 @Component({
   selector: 'app-image-viewer',
@@ -10,22 +11,47 @@ import { BehaviorSubject } from 'rxjs';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ImageViewerComponent {
-  readonly items$ = new BehaviorSubject<GalleryItem[]>([]);
+  @ViewChild('gallery', { static: true })
+  gallery: GalleryRef | null = null;
 
   constructor(public router: Router) { }
 
-  ngOnInit() {
-    let items: GalleryItem[] = [];
+  async ngAfterViewInit() {
+    console.warn(this.gallery);
 
-    let url = 'file://' + this.router.routerState.snapshot.root.queryParams.file;
+    if (this.gallery) {
+      const path = this.router.routerState.snapshot.root.queryParams.file;
+      const result = await new IpcService().send<GetFileContextResponse>(new GetFileContextRequest(path));
 
-    items.push(new ImageItem({ src: url, thumb: url }));
+      const items = result.files
+        .reverse()
+        .map(f => new ImageItem({
+          src: 'file://' + f.path,
+          thumb: f.thumbnail ? f.thumbnail : undefined
+        }));
 
-    this.items$.next(items);
+      const i = items.findIndex(f => f.data.src == 'file://' + path);
+
+      console.warn(items, i);
+
+      this.gallery.load(items);
+      this.gallery.set(i);
+    }
   }
 
+  @HostListener('document:keydown.escape', ['$event'])
   @HostListener('document:keydown.backspace', ['$event'])
-  onKeyDown(event: KeyboardEvent) {
+  goBack(event: KeyboardEvent) {
     this.router.navigateByUrl('/');
+  }
+
+  @HostListener('document:keydown.arrowright', ['$event'])
+  next(event: KeyboardEvent) {
+    this.gallery?.next();
+  }
+
+  @HostListener('document:keydown.arrowleft', ['$event'])
+  prev(event: KeyboardEvent) {
+    this.gallery?.prev();
   }
 }
