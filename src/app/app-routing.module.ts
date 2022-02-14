@@ -6,6 +6,7 @@ import { ImageViewerComponent } from './components/image-viewer/image-viewer.com
 const routes: Routes = [
     { path: '', redirectTo: '/browse', pathMatch: 'full' },
     { path: 'browse', component: VirtualCanvasComponent },
+    { path: 'browse/:id', component: VirtualCanvasComponent },
     { path: 'view', component: ImageViewerComponent },
 ];
 

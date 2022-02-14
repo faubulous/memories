@@ -1,8 +1,9 @@
-import { ChangeDetectionStrategy, Component, ElementRef, HostListener, ViewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, HostListener, ViewChild } from '@angular/core';
 import { Router } from '@angular/router';
 import { GalleryRef, ImageItem } from 'ng-gallery';
 import { GetFileContextRequest, GetFileContextResponse } from 'src/electron/IPC/DatabaseChannel';
 import { IpcService } from 'src/shared/IpcService';
+import { File } from "@prisma/client";
 
 @Component({
   selector: 'app-image-viewer',
@@ -14,14 +15,16 @@ export class ImageViewerComponent {
   @ViewChild('gallery', { static: true })
   gallery: GalleryRef | null = null;
 
+  private file: File | undefined;
+
   constructor(public router: Router) { }
 
   async ngAfterViewInit() {
-    console.warn(this.gallery);
-
     if (this.gallery) {
       const path = this.router.routerState.snapshot.root.queryParams.file;
       const result = await new IpcService().send<GetFileContextResponse>(new GetFileContextRequest(path));
+
+      this.file = result.files.find(f => f.path == path);
 
       const items = result.files
         .reverse()
@@ -32,26 +35,28 @@ export class ImageViewerComponent {
 
       const i = items.findIndex(f => f.data.src == 'file://' + path);
 
-      console.warn(items, i);
-
       this.gallery.load(items);
       this.gallery.set(i);
     }
   }
 
-  @HostListener('document:keydown.escape', ['$event'])
-  @HostListener('document:keydown.backspace', ['$event'])
-  goBack(event: KeyboardEvent) {
-    this.router.navigateByUrl('/');
+  @HostListener('document:keydown.escape')
+  @HostListener('document:keydown.backspace')
+  goBack() {
+    if (this.file) {
+      this.router.navigateByUrl('/browse/' + this.file.id);
+    } else {
+      this.router.navigateByUrl('/browse');
+    }
   }
 
-  @HostListener('document:keydown.arrowright', ['$event'])
-  next(event: KeyboardEvent) {
+  @HostListener('document:keydown.arrowright')
+  next() {
     this.gallery?.next();
   }
 
-  @HostListener('document:keydown.arrowleft', ['$event'])
-  prev(event: KeyboardEvent) {
+  @HostListener('document:keydown.arrowleft')
+  prev() {
     this.gallery?.prev();
   }
 }

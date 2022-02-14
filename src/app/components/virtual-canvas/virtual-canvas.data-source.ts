@@ -70,8 +70,6 @@ export class VirtualCanvasDataSource {
       return;
     }
 
-    console.warn("_loadPage", n);
-
     this._loadedPages.add(n);
 
     let skip = this._pageSize * n;

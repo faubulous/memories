@@ -1,4 +1,4 @@
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { ChangeDetectionStrategy, Component, ElementRef, HostListener, ViewChild } from '@angular/core';
 import Konva from 'konva';
 import { Stage } from 'konva/lib/Stage';
@@ -29,7 +29,9 @@ export class VirtualCanvasComponent {
 
   private layouter: VirtualCanvasLayouter | null = null;
 
-  constructor(private router: Router) { }
+  constructor(private router: Router, private activatedRoute: ActivatedRoute) {
+
+  }
 
   /**
    * Initialize the data source and graphics context.
@@ -54,6 +56,16 @@ export class VirtualCanvasComponent {
     if (this.container) {
       this.container.nativeElement.onscroll = this.onScroll.bind(this);
     }
+
+    this.activatedRoute.paramMap.subscribe(params => {
+      const id = Number(params.get('id'));
+
+      if (this.container && this.layouter && id > 0) {
+        const offset = this.layouter.getScrollOffsetForId(id);
+
+        this.container.nativeElement.scrollTo(0, offset);
+      }
+    });
   }
 
   /**

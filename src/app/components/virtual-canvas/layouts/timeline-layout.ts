@@ -102,6 +102,19 @@ export class TimelineLayout extends VirtualCanvasLayouterBase {
         this.layer.add(this.title);
     }
 
+    getScrollOffsetForId(id: number): number {
+        const n = this.dataSource.data$.value.findIndex(t => t && t.id === id);
+
+        if (n > 0) {
+            const i = this.regions.findIndex(r => r.containsItem(n));
+
+            // Return scroll offset the associated header..
+            return i > -1 ? this.regions[i].p.y - this.padding.top - this.headerHeight : 0;
+        } else {
+            return 0;
+        }
+    }
+
     private getVisibleColumnCount() {
         const w = this.tileWidth + this.spacing;
 

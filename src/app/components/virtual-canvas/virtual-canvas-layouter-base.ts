@@ -1,9 +1,9 @@
 import { Router } from "@angular/router";
 import { Point, Rectangle } from "@mathigon/euclid";
+import Konva from "konva";
 import { Stage } from "konva/lib/Stage";
 import { VirtualCanvasDataSource } from "./virtual-canvas.data-source";
 import { VirtualCanvasLayouter } from "./virtual-canvas-layouter";
-import Konva from "konva";
 
 /**
  * Base class for virtual canvas layouters.
@@ -23,21 +23,18 @@ export abstract class VirtualCanvasLayouterBase implements VirtualCanvasLayouter
         // Trigger a repaint when the data has changed.
         dataSource.data$.subscribe(this.render.bind(this));
 
+        // We draw every time the render() method is invoked.
         Konva.autoDrawEnabled = false;
 
+        // Initialize the stage.
         this.stage.clear();
         this.stage.add(this.layer);
     }
 
-    /**
-     * Get the height of the scrollbar in pixels.
-     */
+    abstract getScrollOffsetForId(id: number): number;
+
     abstract getScrollHeight(): number;
 
-    /**
-     * Set a new scrollbar position.
-     * @param scrollOffset New scroll offset in pixels.
-     */
     setScrollOffset(scrollOffset: number) {
         const w = this.viewport.w;
         const h = this.viewport.h;
@@ -45,11 +42,6 @@ export abstract class VirtualCanvasLayouterBase implements VirtualCanvasLayouter
         this.viewport = new Rectangle(new Point(0, scrollOffset), w, h);
     }
 
-    /*
-     * Update the size of the viewport.
-     * @param width Device independent width of the viewport in pixels.
-     * @param height Device independent height of the viewport in pixels.
-     */
     setViewportSize(width: number, height: number): void {
         this.viewport = new Rectangle(new Point(), width, height);
     }
