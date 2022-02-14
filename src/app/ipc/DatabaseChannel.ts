@@ -2,8 +2,8 @@ import { Prisma, PrismaClient, File } from '@prisma/client';
 import { IpcMainEvent } from 'electron';
 import { IpcRequest } from "./IpcRequest";
 import { IpcChannelInterface } from "./IpcChannelInterface";
-import { Stopwatch } from "../../shared/stopwatch";
 import { Thumbnail } from "../components/virtual-canvas/virtual-canvas.data-source";
+import { Stopwatch } from "../../shared/stopwatch";
 
 export class DatabaseChannel implements IpcChannelInterface {
   readonly db = new PrismaClient();
