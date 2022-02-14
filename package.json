@@ -5,7 +5,7 @@
   "scripts": {
     "build": "tsc ./src/app.ts && ng build --base-href=./",
     "watch": "tsc -w",
-    "start": "npm run build && electron ./src/app.js ",
+    "start": "npm run build && electromon ./src/app.js",
     "electron": "electron ./src/app.js ",
     "index": "tsc ./src/indexer.ts && node ./src/indexer.js"
   },
@@ -22,6 +22,7 @@
     "@nrwl/workspace": "^13.4.2",
     "@types/jasmine": "~3.10.0",
     "@types/node": "^12.11.1",
+    "electromon": "^1.0.10",
     "electron": "^16.0.6",
     "jasmine-core": "~3.10.0",
     "karma": "~6.3.0",
@@ -46,7 +47,9 @@
     "@mathigon/euclid": "^1.0.7",
     "@prisma/client": "^3.7.0",
     "boostrap": "^2.0.0",
+    "konva": "^8.3.2",
     "moment": "^2.29.1",
+    "ng-gallery": "^6.0.0",
     "path": "^0.12.7",
     "prisma": "^3.7.0",
     "rxjs": "~7.4.0",

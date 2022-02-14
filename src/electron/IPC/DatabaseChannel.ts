@@ -17,28 +17,16 @@ export class DatabaseChannel implements IpcChannelInterface {
     stopwatch.start();
 
     if (request.id == 'initFiles') {
-      let query = Prisma.sql`SELECT strftime("%Y-%m-%dT00:00:00", dateModified) date, COUNT(id) count FROM File GROUP BY date ORDER BY date DESC`;
+      let query = Prisma.sql`SELECT id, strftime("%Y-%m-%dT00:00:00", dateModified) date FROM File ORDER BY date DESC`;
 
       this.db.$queryRaw(query).then(result => {
         stopwatch.stop();
         console.warn("initFiles", stopwatch.timeElapsed);
 
         if (Array.isArray(result)) {
-          const length = result.reduce((n, x) => n + x.count, 0);
-          const data = new Array<{ dateModified: Date }>(length);
-
-          let start = 0;
-          let end = 0;
-
-          result.forEach(x => {
-            end = start + x.count;
-
-            data.fill(({ dateModified: new Date(x.date)}), start, end);
-
-            start = end;
+          event.sender.send(request.responseChannel, {
+            data: result.map(x => ({ id: x.id, dateModified: new Date(x.date) }))
           });
-
-          event.sender.send(request.responseChannel, { data });
         }
       })
     } else if (request.id == 'getFiles') {
@@ -57,6 +45,24 @@ export class DatabaseChannel implements IpcChannelInterface {
           count: files.length,
           files: files
         });
+      });
+    } else if (request.id == 'getFileContext') {
+      this.db.file.findFirst({ select: { id: true }, where: { path: request.params.file } }).then(f => {
+        if (f) {
+          this.db.file.findMany({
+            where: {
+              id: {
+                gte: f.id - 10
+              }
+            },
+            take: 20
+          }).then(files => {
+            event.sender.send(request.responseChannel, {
+              count: files.length,
+              files: files
+            });
+          })
+        }
       });
     }
   }
@@ -85,6 +91,21 @@ export class GetFilesRequest extends IpcRequest {
 
 export interface GetFilesResponse {
   offset: number;
+  count: number;
+  files: File[];
+}
+
+export class GetFileContextRequest extends IpcRequest {
+  constructor(file: string, take: number = 60) {
+    super('db', 'getFileContext');
+
+    this.params = {
+      file: file,
+      take: take
+    }
+  }
+}
+export interface GetFileContextResponse {
   count: number;
   files: File[];
 }

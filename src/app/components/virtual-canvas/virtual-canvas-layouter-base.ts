@@ -1,9 +1,9 @@
-import { BehaviorSubject } from "rxjs";
+import { Router } from "@angular/router";
 import { Point, Rectangle } from "@mathigon/euclid";
+import Konva from "konva";
+import { Stage } from "konva/lib/Stage";
 import { VirtualCanvasDataSource } from "./virtual-canvas.data-source";
 import { VirtualCanvasLayouter } from "./virtual-canvas-layouter";
-import { NgZone } from "@angular/core";
-import { VirtualCanvasLayoutRegion } from "./virtual-canvas-layout-region";
 
 /**
  * Base class for virtual canvas layouters.
@@ -14,20 +14,27 @@ export abstract class VirtualCanvasLayouterBase implements VirtualCanvasLayouter
      */
     protected viewport = new Rectangle(new Point());
 
-    constructor(protected ngZone: NgZone, protected ctx: CanvasRenderingContext2D, protected dataSource: VirtualCanvasDataSource) {
+    protected layer = new Konva.Layer({
+        clearBeforeDraw: true,
+        preventDefault: false
+    });
+
+    constructor(protected router: Router, protected stage: Stage, protected dataSource: VirtualCanvasDataSource) {
         // Trigger a repaint when the data has changed.
         dataSource.data$.subscribe(this.render.bind(this));
+
+        // We draw every time the render() method is invoked.
+        Konva.autoDrawEnabled = false;
+
+        // Initialize the stage.
+        this.stage.clear();
+        this.stage.add(this.layer);
     }
 
-    /**
-     * Get the height of the scrollbar in pixels.
-     */
+    abstract getScrollOffsetForId(id: number): number;
+
     abstract getScrollHeight(): number;
 
-    /**
-     * Set a new scrollbar position.
-     * @param scrollOffset New scroll offset in pixels.
-     */
     setScrollOffset(scrollOffset: number) {
         const w = this.viewport.w;
         const h = this.viewport.h;
@@ -35,21 +42,13 @@ export abstract class VirtualCanvasLayouterBase implements VirtualCanvasLayouter
         this.viewport = new Rectangle(new Point(0, scrollOffset), w, h);
     }
 
-    /*
-     * Update the size of the viewport.
-     * @param width Device independent width of the viewport in pixels.
-     * @param height Device independent height of the viewport in pixels.
-     */
     setViewportSize(width: number, height: number): void {
-        const r = window.devicePixelRatio;
-
-        this.viewport = new Rectangle(new Point(), width * r, height * r);
+        this.viewport = new Rectangle(new Point(), width, height);
     }
 
     render(): void {
-        this.ngZone.runOutsideAngular(() => {
-            window.requestAnimationFrame(this.draw.bind(this))
-        });
+        // this.zone.runOutsideAngular(() => this.draw());
+        this.draw();
     }
 
     protected abstract draw(): void;

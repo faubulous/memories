@@ -11,4 +11,17 @@ export class VirtualCanvasLayoutRegion extends Rectangle {
 
         this.date = date;
     }
+
+    /**
+     * Indicates if an item is contained within this layout region.
+     * @param n Item number.
+     * @returns True if the item is in the assigned range, false otherwise.
+     */
+    containsItem(n: number) : boolean {
+        if(this.range) {
+            return this.range.start <= n && n <= this.range.end;
+        } else {
+            return false;
+        }
+    }
 }

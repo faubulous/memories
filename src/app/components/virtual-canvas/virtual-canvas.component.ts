@@ -1,4 +1,7 @@
-import { ChangeDetectionStrategy, Component, ElementRef, HostListener, NgZone, ViewChild } from '@angular/core';
+import { ActivatedRoute, Router } from '@angular/router';
+import { ChangeDetectionStrategy, Component, ElementRef, HostListener, ViewChild } from '@angular/core';
+import Konva from 'konva';
+import { Stage } from 'konva/lib/Stage';
 import { VirtualCanvasDataSource } from './virtual-canvas.data-source';
 import { VirtualCanvasLayouter } from './virtual-canvas-layouter';
 import { TimelineLayout } from './layouts/timeline-layout';
@@ -12,35 +15,37 @@ import { TimelineLayout } from './layouts/timeline-layout';
 })
 export class VirtualCanvasComponent {
   @ViewChild('viewport', { static: true })
-  viewport: ElementRef<HTMLElement> | null = null;
+  viewport: ElementRef<HTMLDivElement> | null = null;
 
   @ViewChild('container', { static: true })
-  container: ElementRef<HTMLElement> | null = null;
+  container: ElementRef<HTMLDivElement> | null = null;
 
   @ViewChild('spacer', { static: true })
   spacer: ElementRef<HTMLElement> | null = null;
 
-  @ViewChild('canvas', { static: true })
-  canvas: ElementRef<HTMLCanvasElement> | null = null;
-
-  private ctx: CanvasRenderingContext2D | null = null;
+  private stage: Stage | undefined;
 
   private dataSource: VirtualCanvasDataSource = new VirtualCanvasDataSource();
 
   private layouter: VirtualCanvasLayouter | null = null;
 
-  constructor(private ngZone: NgZone) { }
+  constructor(private router: Router, private activatedRoute: ActivatedRoute) {
+
+  }
 
   /**
    * Initialize the data source and graphics context.
    */
   async ngOnInit() {
-    if (this.canvas) {
-      this.ctx = this.canvas.nativeElement.getContext('2d');
+    if (this.viewport) {
+      this.stage = new Konva.Stage({
+        container: this.viewport.nativeElement,
+        preventDefault: false
+      });
     }
 
-    if (this.ctx) {
-      this.layouter = new TimelineLayout(this.ngZone, this.ctx, this.dataSource);
+    if (this.stage) {
+      this.layouter = new TimelineLayout(this.router, this.stage, this.dataSource);
 
       // Connect to the database and load inital data.
       await this.dataSource.init();
@@ -51,6 +56,16 @@ export class VirtualCanvasComponent {
     if (this.container) {
       this.container.nativeElement.onscroll = this.onScroll.bind(this);
     }
+
+    this.activatedRoute.paramMap.subscribe(params => {
+      const id = Number(params.get('id'));
+
+      if (this.container && this.layouter && id > 0) {
+        const offset = this.layouter.getScrollOffsetForId(id);
+
+        this.container.nativeElement.scrollTo(0, offset);
+      }
+    });
   }
 
   /**
@@ -61,9 +76,7 @@ export class VirtualCanvasComponent {
       return;
     }
 
-    const offset = this.container.nativeElement.scrollTop;
-
-    this.layouter.setScrollOffset(offset);
+    this.layouter.setScrollOffset(this.container.nativeElement.scrollTop);
     this.layouter.render();
   }
 
@@ -84,19 +97,14 @@ export class VirtualCanvasComponent {
    * size to the display resolution to support high DPI screens.
    */
   updateCanvasSize() {
-    if (!this.viewport || !this.ctx) {
+    if (!this.viewport || !this.stage) {
       return;
     }
 
-    const r = window.devicePixelRatio;
     const w = this.viewport.nativeElement.clientWidth;
     const h = this.viewport.nativeElement.clientHeight;
 
-    // The device pixel ratio accounts for high-dpi screens..
-    this.ctx.canvas.width = w * r;
-    this.ctx.canvas.height = h * r;
-    this.ctx.canvas.style.width = w + 'px';
-    this.ctx.canvas.style.height = h + 'px';
+    this.stage.setSize({ width: w, height: h });
 
     if (!this.spacer || !this.layouter) {
       return;
