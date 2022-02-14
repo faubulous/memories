@@ -1,6 +1,5 @@
 import { app, BrowserWindow, ipcMain, nativeTheme } from 'electron';
-import { DatabaseChannel } from './electron/IPC/DatabaseChannel';
-import { IpcChannelInterface } from "./electron/IPC/IpcChannelInterface";
+import { DatabaseChannel, IpcChannelInterface } from './app/ipc';
 
 class Main {
     private mainWindow?: BrowserWindow;

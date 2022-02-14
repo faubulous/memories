@@ -1,7 +1,12 @@
 import { ListRange } from "@angular/cdk/collections";
 import { BehaviorSubject, debounceTime, distinctUntilChanged } from "rxjs";
-import { GetFilesRequest, GetFilesResponse, InitFilesRequest, InitFilesResponse } from "../../../electron/IPC/DatabaseChannel";
-import { IpcService } from "../../../shared/IpcService";
+import {
+  IpcService,
+  GetFilesRequest,
+  GetFilesResponse,
+  InitFilesRequest,
+  InitFilesResponse
+} from "../../ipc";
 
 export interface Thumbnail {
   id?: number;
@@ -30,7 +35,7 @@ export class VirtualCanvasDataSource {
 
   private readonly _ipc = new IpcService();
 
-  constructor() {}
+  constructor() { }
 
   async init() {
     const result = await new IpcService().send<InitFilesResponse>(new InitFilesRequest());
@@ -80,7 +85,7 @@ export class VirtualCanvasDataSource {
     const thumbnails = new Array(result.files.length);
 
     result.files.forEach((f, m) => {
-      if(f.thumbnail) {
+      if (f.thumbnail) {
         let image = new Image();
         image.src = f.thumbnail;
         image.onload = () => {
