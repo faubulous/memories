@@ -1,8 +1,7 @@
 import { ChangeDetectionStrategy, Component, HostListener, ViewChild } from '@angular/core';
 import { Router } from '@angular/router';
 import { GalleryRef, ImageItem } from 'ng-gallery';
-import { GetFileContextRequest, GetFileContextResponse } from 'src/electron/IPC/DatabaseChannel';
-import { IpcService } from 'src/shared/IpcService';
+import { IpcService, GetFileContextRequest, GetFileContextResponse } from 'src/app/ipc';
 import { File } from "@prisma/client";
 
 @Component({
