@@ -7,7 +7,7 @@ const routes: Routes = [
     { path: '', redirectTo: '/browse', pathMatch: 'full' },
     { path: 'browse', component: VirtualCanvasComponent },
     { path: 'browse/:id', component: VirtualCanvasComponent },
-    { path: 'view', component: ImageViewerComponent },
+    { path: 'view/:id', component: ImageViewerComponent },
 ];
 
 @NgModule({

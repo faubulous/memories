@@ -1,3 +1,5 @@
+import { Point, Rectangle } from "@mathigon/euclid";
+
 export interface VirtualCanvasLayouter {
     /**
      * Get the scroll offset in pixels for a given item.
@@ -9,12 +11,7 @@ export interface VirtualCanvasLayouter {
      * Set a new scrollbar position.
      * @param scrollOffset New scroll offset in pixels.
      */
-    setScrollOffset(scrollOffset: number): void;
-
-    /**
-     * Get the height of the scrollbar in pixels.
-     */
-    getScrollHeight(): number;
+    setScrollOffset(scrollOffset: Point): void;
 
     /*
      * Update the size of the viewport.
@@ -23,5 +20,13 @@ export interface VirtualCanvasLayouter {
      */
     setViewportSize(width: number, height: number): void;
 
+    /**
+     * Layout the content and return the required dimensions.
+     */
+    layout(): Rectangle;
+
+    /**
+     * Render the content on the screen.
+     */
     render(): void;
 }

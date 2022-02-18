@@ -1,12 +1,12 @@
-import { Router } from "@angular/router";
-import { ListRange } from "@angular/cdk/collections";
-import { Point } from "@mathigon/euclid";
-import { Stage } from "konva/lib/Stage";
-import { VirtualCanvasLayoutRegion } from "../virtual-canvas-layout-region";
-import { VirtualCanvasLayouterBase } from "../virtual-canvas-layouter-base";
-import { VirtualCanvasDataSource } from "../virtual-canvas.data-source";
 import * as moment from "moment";
 import Konva from "konva";
+import { Stage } from "konva/lib/Stage";
+import { Router } from "@angular/router";
+import { ListRange } from "@angular/cdk/collections";
+import { Point, Rectangle } from "@mathigon/euclid";
+import { VirtualCanvasLayoutRegion } from "../virtual-canvas-layout-region";
+import { VirtualCanvasLayouterBase } from "../virtual-canvas-layouter-base";
+import { VirtualCanvasDataSourceService } from "../virtual-canvas-data-source.service";
 
 export class TimelineLayout extends VirtualCanvasLayouterBase {
     private padding:
@@ -50,7 +50,7 @@ export class TimelineLayout extends VirtualCanvasLayouterBase {
 
     private thumbnails: Array<Konva.Image> = [];
 
-    constructor(router: Router, stage: Stage, dataSource: VirtualCanvasDataSource) {
+    constructor(router: Router, stage: Stage, dataSource: VirtualCanvasDataSourceService) {
         super(router, stage, dataSource);
 
         for (let i = 0; i < 80; i++) {
@@ -65,11 +65,8 @@ export class TimelineLayout extends VirtualCanvasLayouterBase {
 
             t.on('pointerclick', (e) => {
                 const id = Number(t.id());
-                const file = this.dataSource.data$.value[id];
 
-                if (file) {
-                    this.router.navigateByUrl(`/view?file=${file.path}`);
-                }
+                this.router.navigateByUrl(`/view/${id}`);
             });
 
             t.on('mouseenter', () => {
@@ -103,7 +100,7 @@ export class TimelineLayout extends VirtualCanvasLayouterBase {
     }
 
     getScrollOffsetForId(id: number): number {
-        const n = this.dataSource.data$.value.findIndex(t => t && t.id === id);
+        const n = this.dataSource.data.findIndex(t => t && t.id === id);
 
         if (n > 0) {
             const i = this.regions.findIndex(r => r.containsItem(n));
@@ -144,9 +141,9 @@ export class TimelineLayout extends VirtualCanvasLayouterBase {
             const n = this.getVisibleColumnCount();
 
             const start = Math.max(0, ranges[0]?.start - 6 * n);
-            const end = Math.min(ranges[ranges.length - 1]?.end + 6 * n, this.dataSource.length - 1);
+            const end = ranges[ranges.length - 1]?.end + 6 * n;
 
-            return { start, end };
+            return { start, end: Math.min(end, this.dataSource.data.length - 1) };
         } else {
             return undefined;
         }
@@ -183,7 +180,7 @@ export class TimelineLayout extends VirtualCanvasLayouterBase {
         return section;
     }
 
-    getScrollHeight(): number {
+    layout(): Rectangle {
         const x0 = this.getX0();
         const y0 = this.getY0(0);
 
@@ -195,7 +192,7 @@ export class TimelineLayout extends VirtualCanvasLayouterBase {
 
         this.regions = [];
 
-        this.dataSource.data$.value.forEach((thumbnail, n) => {
+        this.dataSource.data.forEach((thumbnail, n) => {
             if (!thumbnail) {
                 return;
             }
@@ -235,11 +232,14 @@ export class TimelineLayout extends VirtualCanvasLayouterBase {
             x += this.tileWidth + this.spacing;
         });
 
-        return y + this.padding.bottom - this.viewport.h;
+        const w = this.viewport.w;
+        const h = y + this.padding.bottom - this.viewport.h;
+
+        return new Rectangle(new Point(), w, h);
     }
 
     draw(): void {
-        if (!this.regions) {
+        if (!this.regions || !this.thumbnails) {
             return;
         }
 
@@ -273,7 +273,7 @@ export class TimelineLayout extends VirtualCanvasLayouterBase {
                 let n = s.range.start;
 
                 do {
-                    let item = this.dataSource.data$.value[n];
+                    let item = this.dataSource.data[n];
 
                     let tile = this.thumbnails[i];
                     tile.id(n.toString());

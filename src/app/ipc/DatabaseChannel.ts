@@ -46,24 +46,6 @@ export class DatabaseChannel implements IpcChannelInterface {
           files: files
         });
       });
-    } else if (request.id == 'getFileContext') {
-      this.db.file.findFirst({ select: { id: true }, where: { path: request.params.file } }).then(f => {
-        if (f) {
-          this.db.file.findMany({
-            where: {
-              id: {
-                gte: f.id - 10
-              }
-            },
-            take: 20
-          }).then(files => {
-            event.sender.send(request.responseChannel, {
-              count: files.length,
-              files: files
-            });
-          })
-        }
-      });
     }
   }
 }
@@ -91,21 +73,6 @@ export class GetFilesRequest extends IpcRequest {
 
 export interface GetFilesResponse {
   offset: number;
-  count: number;
-  files: File[];
-}
-
-export class GetFileContextRequest extends IpcRequest {
-  constructor(file: string, take: number = 60) {
-    super('db', 'getFileContext');
-
-    this.params = {
-      file: file,
-      take: take
-    }
-  }
-}
-export interface GetFileContextResponse {
   count: number;
   files: File[];
 }

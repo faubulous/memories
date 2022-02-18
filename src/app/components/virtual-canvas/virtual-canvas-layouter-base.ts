@@ -2,8 +2,8 @@ import { Router } from "@angular/router";
 import { Point, Rectangle } from "@mathigon/euclid";
 import Konva from "konva";
 import { Stage } from "konva/lib/Stage";
-import { VirtualCanvasDataSource } from "./virtual-canvas.data-source";
 import { VirtualCanvasLayouter } from "./virtual-canvas-layouter";
+import { VirtualCanvasDataSourceService } from "./virtual-canvas-data-source.service";
 
 /**
  * Base class for virtual canvas layouters.
@@ -19,9 +19,9 @@ export abstract class VirtualCanvasLayouterBase implements VirtualCanvasLayouter
         preventDefault: false
     });
 
-    constructor(protected router: Router, protected stage: Stage, protected dataSource: VirtualCanvasDataSource) {
+    constructor(protected router: Router, protected stage: Stage, protected dataSource: VirtualCanvasDataSourceService) {
         // Trigger a repaint when the data has changed.
-        dataSource.data$.subscribe(this.render.bind(this));
+        dataSource.subscribe(this.render.bind(this));
 
         // We draw every time the render() method is invoked.
         Konva.autoDrawEnabled = false;
@@ -33,13 +33,13 @@ export abstract class VirtualCanvasLayouterBase implements VirtualCanvasLayouter
 
     abstract getScrollOffsetForId(id: number): number;
 
-    abstract getScrollHeight(): number;
+    abstract layout(): Rectangle;
 
-    setScrollOffset(scrollOffset: number) {
+    setScrollOffset(scrollOffset: Point) {
         const w = this.viewport.w;
         const h = this.viewport.h;
 
-        this.viewport = new Rectangle(new Point(0, scrollOffset), w, h);
+        this.viewport = new Rectangle(scrollOffset, w, h);
     }
 
     setViewportSize(width: number, height: number): void {

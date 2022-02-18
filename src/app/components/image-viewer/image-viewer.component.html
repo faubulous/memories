@@ -1,3 +1,6 @@
 <div class="gallery-container">
-  <gallery #gallery thumbPosition="bottom"></gallery>
+  <div class="image" [style.backgroundImage]="image$ | async"></div>
+  <div class="thumbnails">
+    <app-virtual-canvas layout="linear"></app-virtual-canvas>
+  </div>
 </div>

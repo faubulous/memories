@@ -1,5 +1,4 @@
 import { ChangeDetectionStrategy, Component } from '@angular/core';
-import { BehaviorSubject } from 'rxjs';
 
 @Component({
   selector: 'app-root',
@@ -9,6 +8,4 @@ import { BehaviorSubject } from 'rxjs';
 })
 export class AppComponent {
   title = 'memories';
-
-  activeDate$ = new BehaviorSubject<Date>(new Date());
 }

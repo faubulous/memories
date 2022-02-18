@@ -1,8 +1,8 @@
-import { ChangeDetectionStrategy, Component, HostListener, ViewChild } from '@angular/core';
-import { Router } from '@angular/router';
-import { GalleryRef, ImageItem } from 'ng-gallery';
-import { IpcService, GetFileContextRequest, GetFileContextResponse } from 'src/app/ipc';
+import { ChangeDetectionStrategy, Component, HostListener } from '@angular/core';
+import { ActivatedRoute, Router } from '@angular/router';
 import { File } from "@prisma/client";
+import { BehaviorSubject } from 'rxjs';
+import { VirtualCanvasDataSourceService } from '../virtual-canvas/virtual-canvas-data-source.service';
 
 @Component({
   selector: 'app-image-viewer',
@@ -11,39 +11,37 @@ import { File } from "@prisma/client";
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ImageViewerComponent {
-  @ViewChild('gallery', { static: true })
-  gallery: GalleryRef | null = null;
+  private id: number = 0;
 
-  private file: File | undefined;
+  readonly image$ = new BehaviorSubject<string>("");
 
-  constructor(public router: Router) { }
+  constructor(private router: Router, private activatedRoute: ActivatedRoute, private dataSource: VirtualCanvasDataSourceService) { }
 
-  async ngAfterViewInit() {
-    if (this.gallery) {
-      const path = this.router.routerState.snapshot.root.queryParams.file;
-      const result = await new IpcService().send<GetFileContextResponse>(new GetFileContextRequest(path));
+  async ngOnInit() {
+    this.activatedRoute.paramMap.subscribe(params => {
+      this.loadImage(Number(params.get('id')));
 
-      this.file = result.files.find(f => f.path == path);
+      // Scroll thumbnails to scroll offset.
+    });
+  }
 
-      const items = result.files
-        .reverse()
-        .map(f => new ImageItem({
-          src: 'file://' + f.path,
-          thumb: f.thumbnail ? f.thumbnail : undefined
-        }));
+  private loadImage(n: number) {
+    const thumbnail = this.dataSource.data[n];
 
-      const i = items.findIndex(f => f.data.src == 'file://' + path);
+    console.warn(n, thumbnail);
 
-      this.gallery.load(items);
-      this.gallery.set(i);
+    if(thumbnail) {
+      this.image$.next(`url('file://${thumbnail.path}')`);
     }
+
+    this.id = n;
   }
 
   @HostListener('document:keydown.escape')
   @HostListener('document:keydown.backspace')
   goBack() {
-    if (this.file) {
-      this.router.navigateByUrl('/browse/' + this.file.id);
+    if (this.id) {
+      this.router.navigateByUrl('/browse/' + this.id);
     } else {
       this.router.navigateByUrl('/browse');
     }
@@ -51,11 +49,11 @@ export class ImageViewerComponent {
 
   @HostListener('document:keydown.arrowright')
   next() {
-    this.gallery?.next();
+    this.loadImage(this.id + 1);
   }
 
   @HostListener('document:keydown.arrowleft')
   prev() {
-    this.gallery?.prev();
+    this.loadImage(this.id - 1);
   }
 }

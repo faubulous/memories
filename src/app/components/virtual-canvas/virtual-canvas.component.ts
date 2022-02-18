@@ -1,10 +1,11 @@
-import { ActivatedRoute, Router } from '@angular/router';
-import { ChangeDetectionStrategy, Component, ElementRef, HostListener, ViewChild } from '@angular/core';
 import Konva from 'konva';
 import { Stage } from 'konva/lib/Stage';
-import { VirtualCanvasDataSource } from './virtual-canvas.data-source';
+import { Point } from '@mathigon/euclid';
+import { ActivatedRoute, Router } from '@angular/router';
+import { ChangeDetectionStrategy, Component, ElementRef, HostListener, Input, ViewChild } from '@angular/core';
 import { VirtualCanvasLayouter } from './virtual-canvas-layouter';
-import { TimelineLayout } from './layouts/timeline-layout';
+import { VirtualCanvasLayouterFactory } from './virtual-canvas-layouter-factory';
+import { VirtualCanvasDataSourceService } from './virtual-canvas-data-source.service';
 
 // See: https://medium.com/angular-in-depth/how-to-get-started-with-canvas-animations-in-angular-2f797257e5b4
 @Component({
@@ -23,14 +24,16 @@ export class VirtualCanvasComponent {
   @ViewChild('spacer', { static: true })
   spacer: ElementRef<HTMLElement> | null = null;
 
+  @Input()
+  layout: 'timeline' | 'linear' = 'timeline';
+
   private stage: Stage | undefined;
 
-  private dataSource: VirtualCanvasDataSource = new VirtualCanvasDataSource();
+  private layouterFactory: VirtualCanvasLayouterFactory | null = null;
 
   private layouter: VirtualCanvasLayouter | null = null;
 
-  constructor(private router: Router, private activatedRoute: ActivatedRoute) {
-
+  constructor(private router: Router, private activatedRoute: ActivatedRoute, private dataSource: VirtualCanvasDataSourceService) {
   }
 
   /**
@@ -42,10 +45,12 @@ export class VirtualCanvasComponent {
         container: this.viewport.nativeElement,
         preventDefault: false
       });
+
+      this.layouterFactory = new VirtualCanvasLayouterFactory(this.router, this.stage, this.dataSource);
     }
 
-    if (this.stage) {
-      this.layouter = new TimelineLayout(this.router, this.stage, this.dataSource);
+    if (this.stage && this.layouterFactory) {
+      this.layouter = this.layouterFactory.createLayouter(this.layout);
 
       // Connect to the database and load inital data.
       await this.dataSource.init();
@@ -76,7 +81,10 @@ export class VirtualCanvasComponent {
       return;
     }
 
-    this.layouter.setScrollOffset(this.container.nativeElement.scrollTop);
+    var e = this.container.nativeElement;
+
+    // This is weird. The axis seem to be inverted..
+    this.layouter.setScrollOffset(new Point(e.scrollLeft, e.scrollTop));
     this.layouter.render();
   }
 
@@ -114,7 +122,10 @@ export class VirtualCanvasComponent {
     this.layouter.setViewportSize(w, h);
 
     // Update the scrollbar height..
-    this.spacer.nativeElement.style.height = this.layouter.getScrollHeight() + 'px';
+    const r = this.layouter.layout();
+
+    this.spacer.nativeElement.style.width = r.w + 'px';
+    this.spacer.nativeElement.style.height = r.h + 'px';
 
     this.layouter.render();
   }
