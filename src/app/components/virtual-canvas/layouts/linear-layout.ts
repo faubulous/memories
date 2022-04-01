@@ -22,9 +22,11 @@ export class LinearLayout extends VirtualCanvasLayouterBase {
 
     private spacing = 4;
 
-    private tileWidth = 100;
+    private strokeWidth = 4;
 
-    private tileHeight = 100;
+    private tileWidth = 68 - 2 * this.strokeWidth;
+
+    private tileHeight = 68 - 2 * this.strokeWidth;
 
     private thumbnails: Array<Konva.Image> = [];
 
@@ -38,13 +40,16 @@ export class LinearLayout extends VirtualCanvasLayouterBase {
                 fill: '#eee',
                 width: this.tileWidth,
                 height: this.tileHeight,
-                image: undefined
+                image: undefined,
+                selected: false
             });
 
             tile.on('pointerclick', (e) => {
                 const id = Number(tile.id());
 
-                console.warn(id);
+                this.dataSource.selectItem(id);
+
+                this.draw();
             });
 
             tile.on('mouseenter', () => {
@@ -80,11 +85,11 @@ export class LinearLayout extends VirtualCanvasLayouterBase {
     private getX0(scrollOffset: number) {
         const w = this.tileWidth + this.spacing;
 
-        return w > 0 ? this.padding.left - (scrollOffset % w) : 0;
+        return w > 0 ? this.padding.left + this.strokeWidth - (scrollOffset % w) : 0;
     }
 
     private getY0(scrollOffset: number) {
-        return this.padding.top;
+        return this.padding.top + this.strokeWidth;
     }
 
     layout(): Rectangle {
@@ -101,7 +106,7 @@ export class LinearLayout extends VirtualCanvasLayouterBase {
         if (!this.thumbnails) {
             return;
         }
-        
+
         const range = this.getRange(this.viewport.p.x);
 
         if (range) {
@@ -114,6 +119,7 @@ export class LinearLayout extends VirtualCanvasLayouterBase {
             tile.listening(false);
             tile.hide();
             tile.setPosition({ x: 0, y: 0 });
+            tile.strokeEnabled(false);
         });
 
         let x = this.getX0(this.viewport.p.x);
@@ -129,6 +135,13 @@ export class LinearLayout extends VirtualCanvasLayouterBase {
             tile.listening(true);
             tile.setPosition({ x, y });
             tile.image(item?.image);
+
+            if(this.dataSource.selectedItems.indexOf(n) > -1) {
+                tile.strokeEnabled(true);
+                tile.stroke("#ff0000");
+                tile.strokeWidth(this.strokeWidth);
+            }
+
             tile.show();
 
             x += this.tileWidth + this.spacing;

@@ -1,10 +1,18 @@
 /* You can add global styles to this file, and also import other style files */
 
+@import url("https://fonts.googleapis.com/icon?family=Material+Icons");
+
 @font-face {
-    font-family: "Inter";
-    src: url('assets/fonts/Inter-VariableFont_slnt,wght.ttf');
-  }
+  font-family: 'Inter';
+  src: url('assets/fonts/Inter-VariableFont_slnt,wght.ttf');
+}
 
-html, body { height: 100%; }
+html,
+body {
+  height: 100%;
+}
 
-body { margin: 0; font-family: "Inter", "Helvetica Neue", "Arial", sans-serif; }
+body {
+  margin: 0;
+  font-family: 'Inter', 'Helvetica Neue', 'Arial', sans-serif;
+}

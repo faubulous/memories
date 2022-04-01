@@ -1,0 +1,35 @@
+<div class="app-view">
+  <div #actions class="actions-container">
+    <div class="top-left"></div>
+    <div class="top-center"></div>
+    <div class="top-right">
+      <button mat-button (click)="toggleFullscreen()">
+        <mat-icon>open_in_full</mat-icon>
+      </button>
+    </div>
+    <div class="left">
+      <button mat-button (click)="previousImage()">
+        <mat-icon>chevron_left</mat-icon>
+      </button>
+    </div>
+    <div class="center"></div>
+    <div class="right">
+      <button mat-button (click)="nextImage()">
+        <mat-icon>chevron_right</mat-icon>
+      </button>
+    </div>
+    <div class="bottom-left"></div>
+    <div class="bottom-center"></div>
+    <div class="bottom-right"></div>
+  </div>
+  <div class="gallery-container">
+    <app-image-view [imageSource]="image$ | async"></app-image-view>
+  </div>
+  <div class="thumbnails">
+    <app-virtual-canvas
+      layout="linear"
+      orientation="horizontal"
+      (selectionChanged)="selectionChanged($event)"
+    ></app-virtual-canvas>
+  </div>
+</div>

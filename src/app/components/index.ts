@@ -1,7 +1,10 @@
-import { VirtualCanvasComponent } from './virtual-canvas/virtual-canvas.component';
-import { ImageViewerComponent } from './image-viewer/image-viewer.component';
+import { VirtualCanvasComponent } from './virtual-canvas/virtual-canvas.component'
+import { ImageViewComponent } from './image-view/image-view.component';
 
 export * from './virtual-canvas/virtual-canvas.component';
-export * from './image-viewer/image-viewer.component';
+export * from './image-view/image-view.component';
 
-export const components = [VirtualCanvasComponent, ImageViewerComponent];
+export const components = [
+    VirtualCanvasComponent,
+    ImageViewComponent
+];

@@ -21,7 +21,7 @@ export class DatabaseChannel implements IpcChannelInterface {
 
       this.db.$queryRaw(query).then(result => {
         stopwatch.stop();
-        console.warn("initFiles", stopwatch.timeElapsed);
+        console.debug("initFiles", stopwatch.timeElapsed);
 
         if (Array.isArray(result)) {
           event.sender.send(request.responseChannel, {
@@ -38,7 +38,7 @@ export class DatabaseChannel implements IpcChannelInterface {
         take: request.params.take
       }).then(files => {
         stopwatch.stop();
-        console.warn("getFiles", request.params.skip, stopwatch.timeElapsed);
+        console.debug("getFiles", request.params.skip, stopwatch.timeElapsed);
 
         event.sender.send(request.responseChannel, {
           offset: request.params.skip,

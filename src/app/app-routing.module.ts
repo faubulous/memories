@@ -1,13 +1,12 @@
 import { NgModule } from '@angular/core';
 import { Routes, RouterModule } from '@angular/router';
-import { VirtualCanvasComponent } from './components';
-import { ImageViewerComponent } from './components/image-viewer/image-viewer.component';
+import { BrowseContainer, ViewContainer } from './containers';
 
 const routes: Routes = [
     { path: '', redirectTo: '/browse', pathMatch: 'full' },
-    { path: 'browse', component: VirtualCanvasComponent },
-    { path: 'browse/:id', component: VirtualCanvasComponent },
-    { path: 'view/:id', component: ImageViewerComponent },
+    { path: 'browse', component: BrowseContainer },
+    { path: 'browse/:id', component: BrowseContainer },
+    { path: 'view/:id', component: ViewContainer },
 ];
 
 @NgModule({

@@ -2,7 +2,7 @@ import Konva from 'konva';
 import { Stage } from 'konva/lib/Stage';
 import { Point } from '@mathigon/euclid';
 import { ActivatedRoute, Router } from '@angular/router';
-import { ChangeDetectionStrategy, Component, ElementRef, HostListener, Input, ViewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, ElementRef, EventEmitter, HostListener, Input, Output, ViewChild } from '@angular/core';
 import { VirtualCanvasLayouter } from './virtual-canvas-layouter';
 import { VirtualCanvasLayouterFactory } from './virtual-canvas-layouter-factory';
 import { VirtualCanvasDataSourceService } from './virtual-canvas-data-source.service';
@@ -27,13 +27,22 @@ export class VirtualCanvasComponent {
   @Input()
   layout: 'timeline' | 'linear' = 'timeline';
 
+  @Input()
+  orientation: 'horizontal' | 'vertical' = 'vertical';
+
+  @Output()
+  readonly selectionChanged = new EventEmitter<number[]>();
+
   private stage: Stage | undefined;
 
   private layouterFactory: VirtualCanvasLayouterFactory | null = null;
 
   private layouter: VirtualCanvasLayouter | null = null;
 
-  constructor(private router: Router, private activatedRoute: ActivatedRoute, private dataSource: VirtualCanvasDataSourceService) {
+  constructor(
+    private router: Router,
+    private activatedRoute: ActivatedRoute,
+    private dataSource: VirtualCanvasDataSourceService) {
   }
 
   /**
@@ -54,6 +63,11 @@ export class VirtualCanvasComponent {
 
       // Connect to the database and load inital data.
       await this.dataSource.init();
+
+      // Emit the selection changed event.
+      this.dataSource.selectionChanged.subscribe(args => {
+        this.selectionChanged.emit(args);
+      })
 
       this.updateCanvasSize();
     }
@@ -128,5 +142,12 @@ export class VirtualCanvasComponent {
     this.spacer.nativeElement.style.height = r.h + 'px';
 
     this.layouter.render();
+  }
+
+  getScrollContainerClass() {
+    return {
+      horizontal: this.orientation == 'horizontal',
+      vertical: this.orientation == 'vertical'
+    }
   }
 }

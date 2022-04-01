@@ -66,7 +66,7 @@ export class TimelineLayout extends VirtualCanvasLayouterBase {
             t.on('pointerclick', (e) => {
                 const id = Number(t.id());
 
-                this.router.navigateByUrl(`/view/${id}`);
+                this.dataSource.selectItem(id);
             });
 
             t.on('mouseenter', () => {

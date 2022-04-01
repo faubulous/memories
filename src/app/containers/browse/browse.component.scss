@@ -1,0 +1,23 @@
+.gallery-container {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: stretch;
+  position: relative;
+  width: 100%;
+  height: 100%;
+  margin-bottom: 80px;
+}
+
+.gallery-container app-image-view {
+  width: 100%;
+  height: 100%;
+}
+
+.thumbnails {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  height: 80px;
+  border-radius: 5px;
+}

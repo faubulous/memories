@@ -1,16 +1,17 @@
 import { ChangeDetectionStrategy, Component, HostListener } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { File } from "@prisma/client";
 import { BehaviorSubject } from 'rxjs';
-import { VirtualCanvasDataSourceService } from '../virtual-canvas/virtual-canvas-data-source.service';
+import { VirtualCanvasDataSourceService } from '../../components/virtual-canvas/virtual-canvas-data-source.service';
+import { IpcService } from 'src/app/ipc';
+import { ToggleFullscreenRequest } from 'src/app/ipc/WindowChannel';
 
 @Component({
-  selector: 'app-image-viewer',
-  templateUrl: './image-viewer.component.html',
-  styleUrls: ['./image-viewer.component.scss'],
+  selector: 'app-view',
+  templateUrl: './view.component.html',
+  styleUrls: ['./view.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class ImageViewerComponent {
+export class ViewContainer {
   private id: number = 0;
 
   readonly image$ = new BehaviorSubject<string>("");
@@ -25,21 +26,25 @@ export class ImageViewerComponent {
     });
   }
 
-  private loadImage(n: number) {
-    const thumbnail = this.dataSource.data[n];
+  private loadImage(id: number) {
+    const thumbnail = this.dataSource.data[id];
 
-    console.warn(n, thumbnail);
-
-    if(thumbnail) {
-      this.image$.next(`url('file://${thumbnail.path}')`);
+    if (thumbnail) {
+      this.image$.next(`file://${thumbnail.path}`);
     }
 
-    this.id = n;
+    this.id = id;
+  }
+
+  selectionChanged(ids: number[]) {
+    if (this.dataSource && ids) {
+      this.loadImage(ids[0]);
+    }
   }
 
   @HostListener('document:keydown.escape')
   @HostListener('document:keydown.backspace')
-  goBack() {
+  browse() {
     if (this.id) {
       this.router.navigateByUrl('/browse/' + this.id);
     } else {
@@ -47,13 +52,18 @@ export class ImageViewerComponent {
     }
   }
 
+  @HostListener('document:keydown.F11')
+  async toggleFullscreen() {
+    const result = await new IpcService().send<ToggleFullscreenRequest>(new ToggleFullscreenRequest());
+  }
+
   @HostListener('document:keydown.arrowright')
-  next() {
-    this.loadImage(this.id + 1);
+  nextImage() {
+    this.dataSource.selectItem(this.id + 1);
   }
 
   @HostListener('document:keydown.arrowleft')
-  prev() {
-    this.loadImage(this.id - 1);
+  previousImage() {
+    this.dataSource.selectItem(this.id - 1);
   }
 }

@@ -25,7 +25,7 @@ export class VirtualCanvasDataSource {
 
   private _dataCache = new Array<Thumbnail>(this.length);
 
-  readonly data$ = new BehaviorSubject<(Thumbnail | undefined)[]>(this._dataCache);
+  readonly data$ = new BehaviorSubject<(Thumbnail)[]>(this._dataCache);
 
   private readonly _pageSize = 20;
 

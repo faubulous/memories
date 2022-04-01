@@ -9,8 +9,16 @@
 .virtual-canvas-scroll-container {
   width: 100%;
   height: 100%;
-  overflow-y: auto;
+}
+
+.virtual-canvas-scroll-container.horizontal {
+  overflow-y: hidden;
   overflow-x: auto;
+}
+
+.virtual-canvas-scroll-container.vertical {
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 
 canvas {

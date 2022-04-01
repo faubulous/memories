@@ -1,4 +1,4 @@
-<div #container class="virtual-canvas-scroll-container">
+<div #container class="virtual-canvas-scroll-container" [ngClass]="getScrollContainerClass()">
   <div #viewport class="virtual-canvas-viewport"></div>
   <div #spacer class="virtual-canvas-scroll-spacer"></div>
 </div>

@@ -1,5 +1,6 @@
 import { app, BrowserWindow, ipcMain, nativeTheme } from 'electron';
 import { DatabaseChannel, IpcChannelInterface } from './app/ipc';
+import { WindowChannel } from './app/ipc/WindowChannel';
 
 class Main {
     private mainWindow?: BrowserWindow;
@@ -38,18 +39,19 @@ class Main {
 
         this.mainWindow.loadFile('../dist/app/index.html');
 
-        ipcMain.handle('dark-mode:toggle', () => {
-            if (nativeTheme.shouldUseDarkColors) {
-                nativeTheme.themeSource = 'light'
-            } else {
-                nativeTheme.themeSource = 'dark'
-            }
-            return nativeTheme.shouldUseDarkColors
-        });
+        // ipcMain.handle('dark-mode:toggle', () => {
+        //     if (nativeTheme.shouldUseDarkColors) {
+        //         nativeTheme.themeSource = 'light'
+        //     } else {
+        //         nativeTheme.themeSource = 'dark'
+        //     }
 
-        ipcMain.handle('dark-mode:system', () => {
-            nativeTheme.themeSource = 'system'
-        });
+        //     return nativeTheme.shouldUseDarkColors
+        // });
+
+        // ipcMain.handle('dark-mode:system', () => {
+        //     nativeTheme.themeSource = 'system'
+        // });
     }
 
     private registerIpcChannels(ipcChannels: IpcChannelInterface[]) {
@@ -57,4 +59,7 @@ class Main {
     }
 }
 
-new Main().init([new DatabaseChannel()]);
+new Main().init([
+    new WindowChannel(),
+    new DatabaseChannel()
+]);

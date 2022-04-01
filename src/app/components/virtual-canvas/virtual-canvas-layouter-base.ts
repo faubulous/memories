@@ -22,6 +22,7 @@ export abstract class VirtualCanvasLayouterBase implements VirtualCanvasLayouter
     constructor(protected router: Router, protected stage: Stage, protected dataSource: VirtualCanvasDataSourceService) {
         // Trigger a repaint when the data has changed.
         dataSource.subscribe(this.render.bind(this));
+        dataSource.selectionChanged.subscribe(this.render.bind(this));
 
         // We draw every time the render() method is invoked.
         Konva.autoDrawEnabled = false;
