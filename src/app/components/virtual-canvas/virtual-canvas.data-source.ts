@@ -53,7 +53,11 @@ export class VirtualCanvasDataSource {
       debounceTime(10),
       distinctUntilChanged((a, b) => a.start === b.start && a.end == b.end)
     ).subscribe(async (range) => {
+      console.debug(range);
+      
       for (let n = range.start; n <= range.end; n++) {
+        console.debug(n);
+
         await this._loadPage(n);
       }
     });

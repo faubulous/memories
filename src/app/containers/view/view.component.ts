@@ -26,8 +26,8 @@ export class ViewContainer {
     });
   }
 
-  private loadImage(id: number) {
-    const thumbnail = this.dataSource.data[id];
+  private async loadImage(id: number) {
+    const thumbnail = await this.dataSource.loadItem(id);
 
     if (thumbnail) {
       this.image$.next(`file://${thumbnail.path}`);
@@ -36,9 +36,9 @@ export class ViewContainer {
     this.id = id;
   }
 
-  selectionChanged(ids: number[]) {
+  async selectionChanged(ids: number[]) {
     if (this.dataSource && ids) {
-      this.loadImage(ids[0]);
+      await this.loadImage(ids[0]);
     }
   }
 
@@ -54,7 +54,7 @@ export class ViewContainer {
 
   @HostListener('document:keydown.F11')
   async toggleFullscreen() {
-    const result = await new IpcService().send<ToggleFullscreenRequest>(new ToggleFullscreenRequest());
+    await new IpcService().send<ToggleFullscreenRequest>(new ToggleFullscreenRequest());
   }
 
   @HostListener('document:keydown.arrowright')

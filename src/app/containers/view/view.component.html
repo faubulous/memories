@@ -1,6 +1,10 @@
 <div class="app-view">
   <div #actions class="actions-container">
-    <div class="top-left"></div>
+    <div class="top-left">
+      <button mat-button (click)="browse()">
+        <mat-icon>arrow_back</mat-icon>
+      </button>
+    </div>
     <div class="top-center"></div>
     <div class="top-right">
       <button mat-button (click)="toggleFullscreen()">

@@ -37,7 +37,19 @@ export class VirtualCanvasDataSourceService {
         return await this._dataSource.loadRange(range);
     }
 
-    selectItem(id: number) {
+    async loadItem(id: number) {
+        if(!this.data[id]?.image) {
+            await this._dataSource.loadRange({ start: id, end: id + 1 });
+        }
+
+        return this.data[id];
+    }
+
+    async selectItem(id: number) {
+        const x = await this.loadItem(id);
+
+        console.debug("selectItem", x);
+
         this.selectedItems = [id];
         this.selectionChanged.next(this.selectedItems);
     }
