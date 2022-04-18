@@ -10,16 +10,32 @@ generator client {
   provider = "prisma-client-js"
 }
 
+model Folder {
+  id Int @id @default(autoincrement())
+
+  path String @unique
+
+  dateIndexed DateTime
+
+  dateModified DateTime
+
+  fileCount Int
+}
+
 model File {
   id Int @id @default(autoincrement())
 
   path String @unique
 
-  type String
+  @@index([path], name: "path")
+
+  dateIndexed DateTime
 
   dateModified DateTime
 
-  thumbnail String?
-
   @@index([dateModified], name: "dateModified")
+
+  type String
+
+  thumbnail String?
 }

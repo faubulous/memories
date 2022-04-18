@@ -13,7 +13,7 @@
   "license": "MIT",
   "devDependencies": {
     "@angular-builders/custom-webpack": "^13.0.0",
-    "@angular-devkit/build-angular": "~13.1.2",
+    "@angular-devkit/build-angular": "~13.2.5",
     "@angular/cli": "~13.1.2",
     "@angular/compiler-cli": "~13.1.0",
     "@nrwl/cli": "^13.4.2",

@@ -19,6 +19,31 @@ Source code for https://blog.logrocket.com/electron-ipc-response-request-archite
 
 ## Index
 
+### Change Detection
+The indexer compares the modification timestamps of the folders in the database. If the modification
+timestamp is newer than the one in the database, the folder needs to be scanned. Nothing needs to be
+done if the timestamps match. We execute the following change detection routines in this specific order: 
+
+#### 1. Created Files
+To detect files that were added to the folder, we execute the following steps:
+
+1. List the files in the folder sorted by creation date in descending order
+2. Check if the file exists in the database:
+ - No: We need to index the file.
+ - Yes: We are done.
+
+#### 2. Modified Files
+To detect modified files, we execute the following steps:
+
+1. List the files in the folder sorted by modification date in descending order
+2. We compare the modification timestamp with the files in the database
+ - Different: We need to re-index the file.
+ - Match: We are done.
+
+#### 3. Deleted Files
+To detect files that were deleted from the folder, we execute the following steps:
+
+
 ## Rendering
 
 ### Virtualized Timeline
