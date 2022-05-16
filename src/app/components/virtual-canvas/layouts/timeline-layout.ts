@@ -149,10 +149,10 @@ export class TimelineLayout extends VirtualCanvasLayouterBase {
         }
     }
 
-    private formatDate(date: Date): string {
-        const year = date.getUTCFullYear();
-        const month = date.getUTCMonth();
-        const day = date.getUTCDay();
+    private formatDate(value: Date): string {
+        const year = value.getUTCFullYear();
+        const month = value.getUTCMonth();
+        const day = value.getUTCDay();
 
         return `${year}-${month}-${day}`;
     }

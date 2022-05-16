@@ -97,7 +97,7 @@ export class VirtualCanvasDataSource {
             id: f.id,
             type: f.type,
             path: f.path,
-            dateModified: f.dateModified,
+            dateModified: new Date(f.dateModified),
             image: image
           });
 
