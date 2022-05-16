@@ -15,9 +15,9 @@ model Folder {
 
   path String @unique
 
-  dateIndexed DateTime
+  dateIndexed String
 
-  dateModified DateTime
+  dateModified String
 
   fileCount Int
 }
@@ -29,9 +29,9 @@ model File {
 
   @@index([path], name: "path")
 
-  dateIndexed DateTime
+  dateIndexed String
 
-  dateModified DateTime
+  dateModified String
 
   @@index([dateModified], name: "dateModified")
 

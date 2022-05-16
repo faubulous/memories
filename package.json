@@ -7,7 +7,7 @@
     "watch": "tsc -w",
     "start": "npm run build && electron ./src/app.js",
     "electron": "electron ./src/app.js ",
-    "index": "tsc ./src/indexer.ts && node ./src/indexer.js"
+    "index": "tsc ./src/indexer/file-indexer.ts && node ./src/indexer/file-indexer.js"
   },
   "author": "Sebastian Faubel",
   "license": "MIT",
@@ -22,6 +22,7 @@
     "@nrwl/workspace": "^13.4.2",
     "@types/jasmine": "~3.10.0",
     "@types/node": "^12.11.1",
+    "@types/sharp": "^0.30.2",
     "electron": "^16.0.6",
     "jasmine-core": "~3.10.0",
     "karma": "~6.3.0",
@@ -51,7 +52,8 @@
     "path": "^0.12.7",
     "prisma": "^3.7.0",
     "rxjs": "~7.4.0",
-    "sharp": "^0.30.0",
+    "sharp": "^0.30.4",
+    "ts-node": "^10.7.0",
     "tslib": "^2.3.0",
     "zone.js": "~0.11.4"
   }
